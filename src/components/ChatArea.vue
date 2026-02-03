@@ -39,7 +39,7 @@
 
 .chat-container {
     background: white;
-    min-height: 96vh; /* Исправлю когда пойму как лучше обыграть ситуацию. Пока оставлю так */
+    min-height: 96vh; /* Исправлю когда пойму как лучше обыграть ситуацию */
     padding: 20px;
     border-radius: 16px;
     box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
