@@ -16,7 +16,7 @@
                     <input type="text" placeholder="How can I help you?">
                     <div class="btn-border">
                         <button type="submit">
-                            <img src="../assets/icons/Element.svg" alt="">
+                            <img src="../assets/icons/SubmitBtn.svg" alt="">
                         </button>
                     </div>
                 </form>
