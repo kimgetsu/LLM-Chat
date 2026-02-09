@@ -1,0 +1,136 @@
+:root { 
+    /* Primary colors */
+    --primary-100: #2388FF;
+    --primary-200: #FF2D46;
+    --primary-300: #FFC700;
+    --primary-400: #63DE77;
+
+    /* Secondary colors */
+    --secondary-100: #1777E7;
+    --secondary-200: #F6FAFF;
+    --secondary-300: #6D39E4;
+    --secondary-400: #F2ECFF;
+    --secondary-500: #FF649C;
+    --secondary-600: #FFEFF5;
+    --secondary-700: #3AACFF;
+    --secondary-800: #DBF0FF;
+
+    /* Neutral colors */
+    --neutral-100: #FFFFFF;
+    --neutral-200: #F7F8FA;
+    --neutral-300: #F0F2F5;
+    --neutral-400: #E3E6EA;
+    --neutral-500: #BAC0CC;
+    --neutral-600: #666F8D;
+    --neutral-700: #353E5C;
+    --neutral-800: #19213D;
+
+    /* Overlay colors */
+    --overlay-light-100: #FFFFFF66;
+    --overlay-light-200: #FFFFFF80;
+    --overlay-light-300: #FFFFFFA6;
+    --overlay-light-400: #FFFFFFCC;
+
+    --overlay-dark-100: #19213D66;
+    --overlay-dark-200: #19213D80;
+    --overlay-dark-300: #19213DA6;
+    --overlay-dark-400: #19213DCC;
+
+    /* Gradient colors */
+    --red-gradient: linear-gradient(47deg, #DF001B -1.87%, #FFDDDF 101.87%);
+    --yellow-gradient: linear-gradient(45deg, #FF9416 0%, #FFE03A 100%);
+    --blue-gradient: linear-gradient(45deg, #0075FF 0%, #D0EBFF 100%);
+    --green-gradient: linear-gradient(45deg, #3ACD52 0%, #7DFFA2 100%);
+
+    /* Shadows */
+    --sh-neutral-small: 0px 1px 3px 0px #19213D1A;
+    --sh-neutral-regular: 0px 2px 4px 0px #19213D14;
+    --sh-neutral-medium: 0px 8px 15px 0px #19213D1A;
+    --sh-neutral-large: 0px 8px 24px 0px #19213D1F;
+
+    --sh-primary-small: 0px 0px 2px 0px #4D91E13B;
+    --sh-primary-regular: 0px 4px 8px 0px #4D91E11A;
+    --sh-primary-medium: 0px 8px 15px 0px #4D91E11A;
+    --sh-primary-large: 0px 8px 24px 0px #4D91E11A;
+
+    --sh-secondary-small: 0px 0px 2px 0px #9B202F1A;
+    --sh-secondary-regular: 0px 4px 8px 0px #9B202F1A;
+    --sh-secondary-medium: 0px 8px 15px 0px #9B202F1A;
+    --sh-secondary-large: 0px 8px 24px 0px #9B202F24;
+}
+
+
+/* Fonts */
+
+.regular {
+font-weight: 400;
+}
+
+.medium {
+font-weight: 500;
+}
+
+.d-10 {
+    font-size: 72px;
+    line-height: 115%;
+}
+
+.d-9 {
+    font-size: 60px;
+    line-height: 115%;
+}
+
+.d-8 {
+    font-size: 48px;
+    line-height: 125%;
+}
+
+.d-7 {
+    font-size: 36px;
+    line-height: 125%;
+}
+
+.d-6 {
+    font-size: 30px;
+    line-height: 125%;
+}
+
+.d-5 {
+    font-size: 24px;
+    line-height: 125%;
+}
+
+.d-4 {
+    font-size: 20px;
+    line-height: 125%;
+}
+
+.d-3 {
+    font-size: 18px;
+    line-height: 125%;
+}
+
+.d-2 {
+    font-size: 16px;
+    line-height: 125%;
+}
+
+.d-1 {
+    font-size: 14px;
+    line-height: 125%;
+}
+
+.p-large {
+    font-size: 18px;
+    line-height: 150%;
+}
+
+.p-default {
+    font-size: 16px;
+    line-height: 150%;
+}
+
+.p-small {
+    font-size: 14px;
+    line-height: 150%;
+}

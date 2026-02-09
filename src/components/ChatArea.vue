@@ -1,9 +1,9 @@
 <template>
     <div class="chat-container">
         <header class="chat-header">
-            <h1>Chats</h1>
+            <h1 class="d-3 medium">Chats</h1>
             <div class="btn-border">
-                <button>+ New chat</button>
+                <button class="d-1 medium">+ New chat</button>
             </div>
         </header>
 
@@ -11,14 +11,14 @@
             <div class="welcome-card">
                 <div class="welcome-content">
                     <div class="text-section">
-                        <h2>Welcome back, Denis</h2>
-                        <p>Lorem ipsum dolor sit amet, consectetur adipisicing.</p>
+                        <h2 class="d-5 medium">Welcome back, Denis</h2>
+                        <p class="p-default regular">Lorem ipsum dolor sit amet, consectetur adipisicing.</p>
                     </div>
                     <form class="input-section">
                         <input type="text" placeholder="How can I help you?">
                         <div class="btn-border">
                             <button type="submit">
-                                <img src="../assets/icons/SubmitBtn.svg" alt="">
+                                <img src="/src/assets/icons/SubmitBtn.svg" alt="">
                             </button>
                         </div>
                     </form>
@@ -40,13 +40,12 @@
 }
 
 .chat-container {
-    background: white;
-    min-height: 96vh; /* Всё ещё не понял как исправить ситуацию */
+    background: var(--neutral-100);
+    height: 100%;
     padding: 20px;
     border-radius: 16px;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
-    border: 1px solid #e2e8f0;
-    margin: 20px;
+    box-shadow: var(--sh-neutral-medium);
+    border: 1px solid var(--neutral-400);
 }
 
 .chat-header {
@@ -54,19 +53,13 @@
     justify-content: space-between;
     align-items: center;
     padding: 10px 20px;
-    border-bottom: 1px solid #e2e8f0;
+    border-bottom: 1px solid var(--neutral-400);
     margin: 0 -20px 20px -20px;
-    background: white;
-}
-
-.chat-header h1 {
-    font-weight: 500;
-    font-size: 1.25rem;
-    color: #19213D;
+    background: var(--neutral-100);
 }
 
 .btn-border {
-    background: linear-gradient(to right, #174BD2, #185AC2);
+    background: var(--blue-gradient);
     border-radius: 8px;
     padding: 1px;
     display: inline-block;
@@ -74,44 +67,42 @@
 }
 
 .btn-border button {
-    background: linear-gradient(to right, #2B7AFB, #2174FD, #213BFD);
+    background: var(--blue-gradient);
     border: none;
     outline: none;
     border-radius: 7px;
     padding: 12px 16px;
-    color: white;
+    color: var(--neutral-100);
     cursor: pointer;
-    font-size: 1rem;
     width: 100%;
     height: 100%;
-    font-weight: 500;
     transition: background 0.3s ease;
 }
 
 .btn-border:hover {
-    background: linear-gradient(to right, #1443b8, #1552b0);
+    background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
 }
 
 .btn-border:hover button {
-    background: linear-gradient(to right, #266de0, #1e68e0, #1d36e0);
+    background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
 }
 
 .welcome-card {
     position: relative;
-    background-color: white;
+    background-color: var(--neutral-100);
     background-image: url('/src/assets/icons/BackgroundInput.png');
     background-size: cover;
     background-position: center;
     background-repeat: no-repeat;
     border-radius: 12px;
     padding: 30px;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
+    box-shadow: var(--sh-neutral-regular);
     margin: 0 auto;
     min-width: 300px;
     max-width: 774px;
     width: 100%; 
     height: 234px; 
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--neutral-400);
     display: flex;
     align-items: center;
     justify-content: center;
@@ -126,32 +117,21 @@
     gap: 32px;
 }
 
-/* Текстовая секция */
 .text-section {
     width: 400px;
     text-align: center;
 }
 
-.text-section h2 {
-    font-size: 1.5rem;
-    font-weight: 500;
-    margin-bottom: 10px;
-    color: #2d3748;
+.text-section p {
+    color: var(--neutral-600);
 }
 
-.text-section p {
-    color: #666F8D;
-    margin: 0;
-    font-weight: 400;
-    font-size: 0.95rem;
-    line-height: 1.4;
-}
 .input-section {
     display: flex;
-    background: linear-gradient(to right, #f0f4ff, #e6f0ff);
+    background: linear-gradient(to right, #f0f4ff, #e6f0ff); /* Возможно вынести */
     border-radius: 8px;
     overflow: hidden;
-    border: 1px solid #e2e8f0;
+    border: 1px solid var(--neutral-400);
     width: 400px;
     height: 58px;
 }
@@ -162,18 +142,15 @@
     border: none;
     background: transparent;
     outline: none;
-    font-size: 1rem;
-    color: #2d3748;
+    color: var(--neutral-700);
 }
 
 .input-section input::placeholder {
-    color: #666F8D;
-    font-weight: 400;
-    font-size: 0.95rem;
+    color: var(--neutral-600);
 }
 
 .input-section .btn-border {
-    background: linear-gradient(to right, #174BD2, #185AC2);
+    background: var(--blue-gradient);
     border-radius: 0 8px 8px 0;
     height: 100%;
     display: flex;
@@ -182,7 +159,7 @@
 }
 
 .input-section .btn-border button {
-    background: linear-gradient(to right, #2B7AFB, #2174FD, #213BFD);
+    background: var(--blue-gradient);
     border-radius: 0 7px 7px 0;
     padding: 0;
     width: 56px;
@@ -198,11 +175,11 @@
 }
 
 .input-section .btn-border:hover {
-    background: linear-gradient(to right, #1443b8, #1552b0);
+    background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
 }
 
 .input-section .btn-border:hover button {
-    background: linear-gradient(to right, #266de0, #1e68e0, #1d36e0);
+    background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
 }
 
 @media (max-width: 1023px) {
@@ -216,13 +193,8 @@
         margin: 0 -20px 15px -20px;
     }
     
-    .chat-header h1 {
-        font-size: 1.1rem;
-    }
-    
     .btn-border button {
         padding: 10px 14px;
-        font-size: 0.95rem;
     }
     
     .welcome-card {
@@ -240,22 +212,9 @@
         width: 350px;
     }
     
-    .text-section h2 {
-        font-size: 1.4rem;
-    }
-    
-    .text-section p {
-        font-size: 0.9rem;
-    }
-    
     .input-section {
         width: 350px;
         height: 52px;
-    }
-    
-    .input-section input,
-    .input-section input::placeholder {
-        font-size: 0.95rem;
     }
     
     .input-section .btn-border button {
@@ -280,17 +239,12 @@
         margin: 0 -15px 15px -15px;
     }
     
-    .chat-header h1 {
-        font-size: 1rem;
-    }
-    
     .btn-border {
         border-radius: 6px;
     }
     
     .btn-border button {
         padding: 8px 12px;
-        font-size: 0.9rem;
         border-radius: 5px;
     }
     
@@ -308,15 +262,7 @@
         width: 100%;
         max-width: 400px;
     }
-    
-    .text-section h2 {
-        font-size: 1.3rem;
-    }
-    
-    .text-section p {
-        font-size: 0.85rem;
-    }
-    
+      
     .input-section {
         width: 100%;
         max-width: 400px;
@@ -326,11 +272,6 @@
     
     .input-section input {
         padding: 10px 12px;
-        font-size: 0.9rem;
-    }
-    
-    .input-section input::placeholder {
-        font-size: 0.9rem;
     }
     
     .input-section .btn-border {
@@ -359,13 +300,8 @@
         margin: 0 -12px 12px -12px;
     }
     
-    .chat-header h1 {
-        font-size: 0.9rem;
-    }
-    
     .btn-border button {
         padding: 6px 10px;
-        font-size: 0.8rem;
     }
     
     .welcome-card {
@@ -376,26 +312,13 @@
     .welcome-content {
         gap: 20px;
     }
-    
-    .text-section h2 {
-        font-size: 1.1rem;
-    }
-    
-    .text-section p {
-        font-size: 0.8rem;
-    }
-    
+      
     .input-section {
         height: 46px;
     }
     
     .input-section input {
         padding: 8px 10px;
-        font-size: 0.85rem;
-    }
-    
-    .input-section input::placeholder {
-        font-size: 0.85rem;
     }
     
     .input-section .btn-border button {
