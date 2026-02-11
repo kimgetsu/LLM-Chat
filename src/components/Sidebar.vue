@@ -1,21 +1,17 @@
 <template>
-  <aside :class="['sidebar', {'collapsed': isCollapsed}]">
+  <aside :class="['sidebar', { collapsed: isCollapsed }]">
     <div class="sidebar-container">
       <header class="sidebar-header">
         <div class="header-content">
-          <img 
-            src="../assets/icons/Avatar.png" 
-            alt="Avatar" 
-            class="avatar"
-          >
+          <img src="../assets/icons/Avatar.png" alt="Avatar" class="avatar" />
           <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
         </div>
-        <div class="header-actions" :class="{'collapsed': isCollapsed}">
+        <div class="header-actions" :class="{ collapsed: isCollapsed }">
           <button type="button">
-            <img src="/src/assets/icons/Settings.svg" alt="Settings" class="icon">
+            <SettingsIcon :width="20" :height="20" class="icon" />
           </button>
           <button type="button" @click="toggleCollapse" class="collapse-btn">
-            <img src="/src/assets/icons/Sidebar.svg" alt="Toggle sidebar" class="icon">
+            <SidebarIcon :width="20" :height="20" class="icon" />
           </button>
         </div>
       </header>
@@ -35,7 +31,10 @@
           </li>
           <li class="chat-item">
             <a href="#" class="chat-link">
-              <span class="d-2 regular chat-title">Write a poem about the heat of her hair, the coals in a January fire and how I burn in it</span>
+              <span class="d-2 regular chat-title"
+                >Write a poem about the heat of her hair, the coals in a January fire and how I burn
+                in it</span
+              >
             </a>
           </li>
         </ul>
@@ -43,7 +42,7 @@
 
       <footer v-if="!isCollapsed" class="sidebar-footer">
         <div class="btn-border">
-          <button class="d-2 medium">+ Start new chat</button>
+          <button class="d-2 medium"><PlusIcon /> Start new chat</button>
         </div>
       </footer>
     </div>
@@ -51,7 +50,10 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
+import { ref, onMounted, onUnmounted } from 'vue'
+import SettingsIcon from '../assets/icons/SettingsIcon.svg'
+import SidebarIcon from '../assets/icons/SidebarIcon.svg'
+import PlusIcon from '../assets/icons/PlusIcon.svg'
 
 const isCollapsed = ref(false)
 const isMobile = ref(false)
@@ -85,7 +87,9 @@ const toggleCollapse = () => {
   display: flex;
   flex-direction: column;
   height: 100%;
-  transition: width 0.4s ease-in-out, transform 0.3s ease-in-out;
+  transition:
+    width 0.4s ease-in-out,
+    transform 0.3s ease-in-out;
   position: relative;
   z-index: 100;
   overflow: hidden;
@@ -196,8 +200,6 @@ const toggleCollapse = () => {
 }
 
 .icon {
-  width: 20px;
-  height: 20px;
   display: block;
 }
 
@@ -281,11 +283,11 @@ const toggleCollapse = () => {
 }
 
 .btn-border:hover {
-  background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
+  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
 }
 
 .btn-border:hover button {
-  background: linear-gradient(45deg, #0068E5 0%, #B8DDFF 100%);
+  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
 }
 
 @media (max-width: 1023px) {
@@ -293,23 +295,23 @@ const toggleCollapse = () => {
     width: 240px;
     min-width: 240px;
   }
-  
+
   .sidebar-container {
     padding: 20px;
   }
-  
+
   .username {
     max-width: 120px;
   }
-  
+
   .chat-link {
     padding: 12px 10px;
   }
-  
+
   .btn-border {
     height: 42px;
   }
-  
+
   .sidebar.collapsed {
     width: 60px;
     min-width: 60px;
@@ -328,30 +330,30 @@ const toggleCollapse = () => {
     transform: translateX(0);
     transition: width 0.3s ease-in-out;
   }
-  
+
   .sidebar:not(.collapsed) {
     width: 280px;
     min-width: 280px;
     box-shadow: var(--sh-neutral-medium);
     z-index: 100;
   }
-  
+
   .sidebar-container {
     padding: 20px 16px;
   }
-  
+
   .sidebar-header {
     margin-bottom: 30px;
   }
-  
+
   .username {
     max-width: 140px;
   }
-  
+
   .chat-link {
     padding: 12px 10px;
   }
-  
+
   .btn-border {
     height: 44px;
   }

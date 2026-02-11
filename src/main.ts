@@ -5,7 +5,4 @@ import { pinia } from './stores'
 import { router } from './router'
 import './assets/css/variables.css'
 
-createApp(App)
-    .use(pinia)
-    .use(router)
-    .mount('#app')
+createApp(App).use(pinia).use(router).mount('#app')

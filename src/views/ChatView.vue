@@ -1,22 +1,18 @@
 <template>
-    <div class="app-container">
-        <Sidebar />
-        <div class="content-area">
-            <ChatArea />
-        </div>
-        
-        <div 
-            v-if="isMobile && !isSidebarCollapsed" 
-            class="mobile-overlay"
-            @click="closeSidebar"
-        ></div>
+  <div class="app-container">
+    <Sidebar />
+    <div class="content-area">
+      <ChatArea />
     </div>
+
+    <div v-if="isMobile && !isSidebarCollapsed" class="mobile-overlay" @click="closeSidebar"></div>
+  </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue';
-import ChatArea from '../components/ChatArea.vue';
-import Sidebar from '../components/Sidebar.vue';
+import { ref, onMounted, onUnmounted } from 'vue'
+import ChatArea from '../components/ChatArea.vue'
+import Sidebar from '../components/Sidebar.vue'
 
 const isMobile = ref(false)
 const isSidebarCollapsed = ref(true)
@@ -39,16 +35,16 @@ let observer: MutationObserver | null = null
 onMounted(() => {
   checkMobile()
   window.addEventListener('resize', checkMobile)
-  
+
   const sidebar = document.querySelector('.sidebar')
   if (sidebar) {
     const updateSidebarState = () => {
       isSidebarCollapsed.value = sidebar.classList.contains('collapsed')
     }
-    
+
     observer = new MutationObserver(updateSidebarState)
     observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] })
-    
+
     updateSidebarState()
   }
 })
@@ -63,42 +59,46 @@ onUnmounted(() => {
 
 <style scoped>
 .app-container {
-    display: grid;
-    grid-template-columns: 296px 1fr;
-    background: #F7F8FA;
-    height: 100vh;
-    padding: 10px 10px 10px 0;
-    box-sizing: border-box;
-    transition: grid-template-columns 0.4s ease-in-out;
-    position: relative;
-    overflow: hidden;
+  display: grid;
+  grid-template-columns: 296px 1fr;
+  background: #f7f8fa;
+  height: 100vh;
+  padding: 10px 10px 10px 0;
+  box-sizing: border-box;
+  transition: grid-template-columns 0.4s ease-in-out;
+  position: relative;
+  overflow: hidden;
 }
 
 .app-container:has(.sidebar.collapsed) {
-    grid-template-columns: 60px 1fr;
+  grid-template-columns: 60px 1fr;
 }
 
 .content-area {
-    position: relative;
-    overflow: hidden;
+  position: relative;
+  overflow: hidden;
 }
 
 .mobile-overlay {
-    position: fixed;
-    top: 0;
-    left: 60px;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.4);
-    z-index: 90;
-    backdrop-filter: blur(2px);
-    animation: fadeIn 0.3s ease;
-    pointer-events: auto;
+  position: fixed;
+  top: 0;
+  left: 60px;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto;
 }
 
 @keyframes fadeIn {
-    from { opacity: 0; }
-    to { opacity: 1; }
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 1023px) {
@@ -114,7 +114,7 @@ onUnmounted(() => {
     position: relative;
     overflow: hidden;
   }
-  
+
   .content-area {
     flex: 1;
     width: 100%;
@@ -125,11 +125,11 @@ onUnmounted(() => {
     transition: margin-left 0s;
     box-sizing: border-box;
   }
-  
+
   .app-container:has(.sidebar:not(.collapsed)) .content-area {
     margin-left: 60px;
   }
-  
+
   .app-container:has(.sidebar:not(.collapsed)) .content-area::before {
     content: '';
     position: absolute;
@@ -142,7 +142,7 @@ onUnmounted(() => {
     pointer-events: none;
     animation: fadeIn 0.3s ease;
   }
-  
+
   .content-area .chat-container {
     margin: 0;
     width: 100%;
