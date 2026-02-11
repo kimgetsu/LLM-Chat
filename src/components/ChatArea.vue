@@ -2,9 +2,11 @@
   <div class="chat-container">
     <header class="chat-header">
       <h1 class="d-3 medium">Chats</h1>
-      <div class="btn-border">
-        <button class="d-1 medium"><PlusIcon /> New chat</button>
-      </div>
+
+      <UiButton variant="primary" size="default">
+        <template #left> <PlusIcon /> </template>
+        <template #default>New chat</template>
+      </UiButton>
     </header>
 
     <main class="chat-main">
@@ -16,11 +18,11 @@
           </div>
           <form class="input-section">
             <input type="text" placeholder="How can I help you?" />
-            <div class="btn-border">
-              <button type="submit">
-                <SendIcon :width="20" :height="20" />
-              </button>
-            </div>
+            <span class="input-btn">
+              <UiButton variant="primary" size="default" :onlyIcon="true">
+                <template #left> <SendIcon /> </template>
+              </UiButton>
+            </span>
           </form>
         </div>
       </div>
@@ -31,6 +33,7 @@
 <script setup lang="ts">
 import PlusIcon from '../assets/icons/PlusIcon.svg'
 import SendIcon from '../assets/icons/SendIcon.svg'
+import UiButton from './shared/UiButton.vue'
 </script>
 
 <style scoped>
@@ -56,45 +59,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
   border-bottom: 1px solid var(--neutral-400);
   margin: 0 -20px 20px -20px;
   background: var(--neutral-100);
-}
-
-.btn-border {
-  background: var(--blue-gradient);
-  border-radius: 8px;
-  padding: 1px;
-  display: inline-block;
-  transition: background 0.3s ease;
-}
-
-.submit-btn {
-  border-radius: 0 7px 7px 0 !important;
-  width: 56px !important;
-  height: 56px !important;
-  padding: 0 !important;
-  display: flex !important;
-  align-items: center !important;
-  justify-content: center !important;
-}
-
-.btn-border button {
-  background: var(--blue-gradient);
-  border: none;
-  outline: none;
-  border-radius: 7px;
-  padding: 12px 16px;
-  color: var(--neutral-100);
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-  transition: background 0.3s ease;
-}
-
-.btn-border:hover {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
-}
-
-.btn-border:hover button {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
 }
 
 .welcome-card {
@@ -137,6 +101,8 @@ import SendIcon from '../assets/icons/SendIcon.svg'
 
 .input-section {
   display: flex;
+  justify-content: center;
+  align-items: center;
   background: linear-gradient(to right, #f0f4ff, #e6f0ff);
   border-radius: 8px;
   overflow: hidden;
@@ -158,23 +124,8 @@ import SendIcon from '../assets/icons/SendIcon.svg'
   color: var(--neutral-600);
 }
 
-.input-section .btn-border {
-  border-radius: 0 8px 8px 0;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-}
-
-.input-section .btn-border button {
-  background: var(--blue-gradient);
-  border-radius: 0 7px 7px 0;
-  padding: 0;
-  width: 56px;
-  height: 56px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
+.input-btn {
+  margin: 5px;
 }
 
 .input-section .btn-border:hover {
@@ -196,10 +147,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
     margin: 0 -20px 15px -20px;
   }
 
-  .btn-border button {
-    padding: 10px 14px;
-  }
-
   .welcome-card {
     max-width: 600px;
     padding: 25px;
@@ -219,16 +166,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
     width: 350px;
     height: 52px;
   }
-
-  .input-section .btn-border button {
-    width: 50px;
-    height: 50px;
-  }
-
-  .input-section .btn-border button img {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 @media (max-width: 767px) {
@@ -240,15 +177,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
   .chat-header {
     padding: 10px 15px;
     margin: 0 -15px 15px -15px;
-  }
-
-  .btn-border {
-    border-radius: 6px;
-  }
-
-  .btn-border button {
-    padding: 8px 12px;
-    border-radius: 5px;
   }
 
   .welcome-card {
@@ -276,21 +204,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
   .input-section input {
     padding: 10px 12px;
   }
-
-  .input-section .btn-border {
-    border-radius: 0 6px 6px 0;
-  }
-
-  .input-section .btn-border button {
-    width: 48px;
-    height: 48px;
-    border-radius: 0 5px 5px 0;
-  }
-
-  .input-section .btn-border button img {
-    width: 18px;
-    height: 18px;
-  }
 }
 
 @media (max-width: 359px) {
@@ -301,10 +214,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
   .chat-header {
     padding: 8px 12px;
     margin: 0 -12px 12px -12px;
-  }
-
-  .btn-border button {
-    padding: 6px 10px;
   }
 
   .welcome-card {
@@ -322,11 +231,6 @@ import SendIcon from '../assets/icons/SendIcon.svg'
 
   .input-section input {
     padding: 8px 10px;
-  }
-
-  .input-section .btn-border button {
-    width: 44px;
-    height: 44px;
   }
 }
 </style>

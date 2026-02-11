@@ -7,12 +7,12 @@
           <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
         </div>
         <div class="header-actions" :class="{ collapsed: isCollapsed }">
-          <button type="button">
-            <SettingsIcon :width="20" :height="20" class="icon" />
-          </button>
-          <button type="button" @click="toggleCollapse" class="collapse-btn">
-            <SidebarIcon :width="20" :height="20" class="icon" />
-          </button>
+          <UiButton variant="tertiary" size="small" :onlyIcon="true">
+            <template #left> <SettingsIcon /> </template>
+          </UiButton>
+          <UiButton @click="toggleCollapse" variant="tertiary" size="small" :onlyIcon="true">
+            <template #left> <SidebarIcon /> </template>
+          </UiButton>
         </div>
       </header>
 
@@ -41,8 +41,11 @@
       </section>
 
       <footer v-if="!isCollapsed" class="sidebar-footer">
-        <div class="btn-border">
-          <button class="d-2 medium"><PlusIcon /> Start new chat</button>
+        <div class="btn-container">
+          <UiButton variant="primary" size="default" class="sidebar-btn">
+            <template #left><PlusIcon /></template>
+            <template #default>Start new chat</template>
+          </UiButton>
         </div>
       </footer>
     </div>
@@ -54,6 +57,7 @@ import { ref, onMounted, onUnmounted } from 'vue'
 import SettingsIcon from '../assets/icons/SettingsIcon.svg'
 import SidebarIcon from '../assets/icons/SidebarIcon.svg'
 import PlusIcon from '../assets/icons/PlusIcon.svg'
+import UiButton from './shared/UiButton.vue'
 
 const isCollapsed = ref(false)
 const isMobile = ref(false)
@@ -93,6 +97,16 @@ const toggleCollapse = () => {
   position: relative;
   z-index: 100;
   overflow: hidden;
+}
+
+.sidebar-btn {
+  width: 248px;
+  height: 45px;
+}
+
+.btn-container {
+  display: flex;
+  justify-content: center;
 }
 
 .sidebar.collapsed {
@@ -179,26 +193,6 @@ const toggleCollapse = () => {
   gap: 32px;
 }
 
-.header-actions button {
-  background: none;
-  border: none;
-  cursor: pointer;
-  width: 32px;
-  height: 32px;
-  border-radius: 8px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: var(--neutral-600);
-  transition: all 0.2s ease;
-  padding: 0;
-  flex-shrink: 0;
-}
-
-.header-actions button:hover {
-  background: var(--neutral-400);
-}
-
 .icon {
   display: block;
 }
@@ -256,40 +250,6 @@ const toggleCollapse = () => {
   padding-top: 20px;
 }
 
-.btn-border {
-  background: var(--blue-gradient);
-  border-radius: 8px;
-  display: block;
-  width: 100%;
-  height: 48px;
-  transition: all 0.3s ease;
-  padding: 1px;
-}
-
-.btn-border button {
-  background: var(--blue-gradient);
-  border: none;
-  outline: none;
-  border-radius: 7px;
-  padding: 0;
-  color: var(--neutral-100);
-  cursor: pointer;
-  width: 100%;
-  height: 100%;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-}
-
-.btn-border:hover {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
-}
-
-.btn-border:hover button {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
-}
-
 @media (max-width: 1023px) {
   .sidebar:not(.collapsed) {
     width: 240px;
@@ -306,10 +266,6 @@ const toggleCollapse = () => {
 
   .chat-link {
     padding: 12px 10px;
-  }
-
-  .btn-border {
-    height: 42px;
   }
 
   .sidebar.collapsed {
@@ -352,10 +308,6 @@ const toggleCollapse = () => {
 
   .chat-link {
     padding: 12px 10px;
-  }
-
-  .btn-border {
-    height: 44px;
   }
 }
 </style>
