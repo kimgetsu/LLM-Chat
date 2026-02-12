@@ -4,7 +4,7 @@
     :type="type"
     :disabled="disabled"
   >
-    <span v-if="$slots.left" class="icon-only" aria-hidden="true">
+    <span v-if="$slots.left" aria-hidden="true" class="icon-btn">
       <slot name="left" />
     </span>
 
@@ -12,7 +12,7 @@
       <slot />
     </span>
 
-    <span v-if="$slots.right" class="icon-only" aria-hidden="true">
+    <span v-if="$slots.right" aria-hidden="true" class="icon-btn">
       <slot name="right" />
     </span>
   </button>
@@ -51,15 +51,20 @@ withDefaults(defineProps<ButtonProps>(), {
   padding-inline: 17px;
 }
 
+.icon-btn {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
 .variant-primary {
   background: linear-gradient(180deg, #2b7afb 0%, #2174fd 100%, #213bfd 100%);
   color: var(--neutral-100);
-  border: 1px solid var(--secondary-300);
+  border: 1px solid #5f6ccc;
   filter: drop-shadow(
-    0px 2px 1px 0px #ffffff38 inset,
-    0px -2px 0.3px 0px #0e387d2e inset,
-    0px 2px 5px 0px #1458c92b
+    0px 2px 1px 0px #ffffff38 inset 0px -2px 0.3px 0px #0e387d2e inset 0px 2px 5px 0px #1458c92b
   );
+  transition: filter 0.3s ease;
 }
 
 .variant-secondary {
@@ -67,12 +72,14 @@ withDefaults(defineProps<ButtonProps>(), {
   color: var(--neutral-800);
   border: 1px solid var(--neutral-500);
   filter: drop-shadow(0px 1px 3px 0px #19213d1a);
+  transition: background 0.3s ease;
 }
 
 .variant-tertiary {
   background: var(--secondary-200);
   color: var(--primary-100);
   box-shadow: none;
+  transition: background 0.3s ease;
 }
 
 .size-small {
@@ -114,7 +121,7 @@ withDefaults(defineProps<ButtonProps>(), {
 }
 
 .variant-primary:hover {
-  background: var(--secondary-300);
+  filter: brightness(0.87) saturate(1.1);
 }
 
 .variant-secondary:hover {
@@ -123,5 +130,17 @@ withDefaults(defineProps<ButtonProps>(), {
 
 .variant-tertiary:hover {
   background: var(--neutral-400);
+}
+
+.variant-primary:active {
+  filter: brightness(1.15) saturate(1.1);
+}
+
+.variant-secondary:active {
+  background: var(--neutral-500);
+}
+
+.variant-tertiary:active {
+  background: var(--neutral-500);
 }
 </style>

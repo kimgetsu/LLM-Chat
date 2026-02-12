@@ -1,60 +1,30 @@
 <template>
   <div class="app-container">
-    <Sidebar />
-    <div class="content-area">
+    <section>
+      <SidebarHeader />
+      <SidebarSection />
+      <SidebarFooter />
+    </section>
+    <section class="content-area">
       <ChatArea />
-    </div>
+    </section>
 
-    <div v-if="isMobile && !isSidebarCollapsed" class="mobile-overlay" @click="closeSidebar"></div>
+    <div v-if="isMobile && !isCollapsed" class="mobile-overlay" @click="closeSidebar"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
 import ChatArea from '../components/ChatArea.vue'
-import Sidebar from '../components/Sidebar.vue'
+import SidebarHeader from '../components/Sidebar/ui/SidebarHeader.vue'
+import SidebarSection from '../components/Sidebar/ui/SidebarSection.vue'
+import SidebarFooter from '../components/Sidebar/ui/SidebarFooter.vue'
+import { useSidebarState } from '../components/Sidebar'
 
-const isMobile = ref(false)
-const isSidebarCollapsed = ref(true)
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth < 768
-  if (isMobile.value) {
-    isSidebarCollapsed.value = true
-  }
-}
+const { isMobile, isCollapsed, close } = useSidebarState()
 
 const closeSidebar = () => {
-  isSidebarCollapsed.value = true
-  const sidebarBtn = document.querySelector('.sidebar .collapse-btn') as HTMLElement
-  if (sidebarBtn) sidebarBtn.click()
+  if (!isCollapsed.value) close()
 }
-
-let observer: MutationObserver | null = null
-
-onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
-
-  const sidebar = document.querySelector('.sidebar')
-  if (sidebar) {
-    const updateSidebarState = () => {
-      isSidebarCollapsed.value = sidebar.classList.contains('collapsed')
-    }
-
-    observer = new MutationObserver(updateSidebarState)
-    observer.observe(sidebar, { attributes: true, attributeFilter: ['class'] })
-
-    updateSidebarState()
-  }
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile)
-  if (observer) {
-    observer.disconnect()
-  }
-})
 </script>
 
 <style scoped>

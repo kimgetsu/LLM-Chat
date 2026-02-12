@@ -128,14 +128,6 @@ import UiButton from './shared/UiButton.vue'
   margin: 5px;
 }
 
-.input-section .btn-border:hover {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
-}
-
-.input-section .btn-border:hover button {
-  background: linear-gradient(45deg, #0068e5 0%, #b8ddff 100%);
-}
-
 @media (max-width: 1023px) {
   .chat-container {
     padding: 20px;

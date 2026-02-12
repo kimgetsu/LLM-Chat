@@ -3,14 +3,14 @@
     <div class="sidebar-container">
       <header class="sidebar-header">
         <div class="header-content">
-          <img src="../assets/icons/Avatar.png" alt="Avatar" class="avatar" />
+          <img src="../../../assets/icons/Avatar.png" alt="Avatar" class="avatar" />
           <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
         </div>
         <div class="header-actions" :class="{ collapsed: isCollapsed }">
           <UiButton variant="tertiary" size="small" :onlyIcon="true">
             <template #left> <SettingsIcon /> </template>
           </UiButton>
-          <UiButton @click="toggleCollapse" variant="tertiary" size="small" :onlyIcon="true">
+          <UiButton @click="toggle" variant="tertiary" size="small" :onlyIcon="true">
             <template #left> <SidebarIcon /> </template>
           </UiButton>
         </div>
@@ -53,34 +53,13 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted } from 'vue'
-import SettingsIcon from '../assets/icons/SettingsIcon.svg'
-import SidebarIcon from '../assets/icons/SidebarIcon.svg'
-import PlusIcon from '../assets/icons/PlusIcon.svg'
-import UiButton from './shared/UiButton.vue'
+import { useSidebarState } from '../model/useSidebarState'
+import SettingsIcon from '../../../assets/icons/SettingsIcon.svg'
+import SidebarIcon from '../../../assets/icons/SidebarIcon.svg'
+import PlusIcon from '../../../assets/icons/PlusIcon.svg'
+import UiButton from '../../shared/UiButton.vue'
 
-const isCollapsed = ref(false)
-const isMobile = ref(false)
-
-const checkMobile = () => {
-  isMobile.value = window.innerWidth < 768
-  if (isMobile.value) {
-    isCollapsed.value = true
-  }
-}
-
-onMounted(() => {
-  checkMobile()
-  window.addEventListener('resize', checkMobile)
-})
-
-onUnmounted(() => {
-  window.removeEventListener('resize', checkMobile)
-})
-
-const toggleCollapse = () => {
-  isCollapsed.value = !isCollapsed.value
-}
+const { isCollapsed, toggle } = useSidebarState()
 </script>
 
 <style scoped>
