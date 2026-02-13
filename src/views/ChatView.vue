@@ -1,10 +1,6 @@
 <template>
   <div class="app-container">
-    <section>
-      <SidebarHeader />
-      <SidebarSection />
-      <SidebarFooter />
-    </section>
+    <Sidebar />
     <section class="content-area">
       <ChatArea />
     </section>
@@ -15,9 +11,7 @@
 
 <script setup lang="ts">
 import ChatArea from '../components/ChatArea.vue'
-import SidebarHeader from '../components/Sidebar/ui/SidebarHeader.vue'
-import SidebarSection from '../components/Sidebar/ui/SidebarSection.vue'
-import SidebarFooter from '../components/Sidebar/ui/SidebarFooter.vue'
+import Sidebar from '../components/Sidebar/ui/Sidebar.vue'
 import { useSidebarState } from '../components/Sidebar'
 
 const { isMobile, isCollapsed, close } = useSidebarState()
@@ -91,26 +85,7 @@ const closeSidebar = () => {
     height: 100vh;
     overflow-y: auto;
     position: relative;
-    margin-left: 60px;
-    transition: margin-left 0s;
     box-sizing: border-box;
-  }
-
-  .app-container:has(.sidebar:not(.collapsed)) .content-area {
-    margin-left: 60px;
-  }
-
-  .app-container:has(.sidebar:not(.collapsed)) .content-area::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    bottom: 0;
-    background: rgba(0, 0, 0, 0.3);
-    z-index: 89;
-    pointer-events: none;
-    animation: fadeIn 0.3s ease;
   }
 
   .content-area .chat-container {

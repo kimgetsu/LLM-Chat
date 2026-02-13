@@ -1,21 +1,7 @@
 <template>
   <aside :class="['sidebar', { collapsed: isCollapsed }]">
     <div class="sidebar-container">
-      <header class="sidebar-header">
-        <div class="header-content">
-          <img src="../../../assets/icons/Avatar.png" alt="Avatar" class="avatar" />
-          <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
-        </div>
-        <div class="header-actions" :class="{ collapsed: isCollapsed }">
-          <UiButton variant="tertiary" size="small" :onlyIcon="true">
-            <template #left> <SettingsIcon /> </template>
-          </UiButton>
-          <UiButton @click="toggle" variant="tertiary" size="small" :onlyIcon="true">
-            <template #left> <SidebarIcon /> </template>
-          </UiButton>
-        </div>
-      </header>
-
+      <SidebarHeader />
       <section v-if="!isCollapsed" class="chat-history">
         <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
         <ul class="chat-list">
@@ -39,27 +25,17 @@
           </li>
         </ul>
       </section>
-
-      <footer v-if="!isCollapsed" class="sidebar-footer">
-        <div class="btn-container">
-          <UiButton variant="primary" size="default" class="sidebar-btn">
-            <template #left><PlusIcon /></template>
-            <template #default>Start new chat</template>
-          </UiButton>
-        </div>
-      </footer>
+      <SidebarFooter />
     </div>
   </aside>
 </template>
 
 <script setup lang="ts">
 import { useSidebarState } from '../model/useSidebarState'
-import SettingsIcon from '../../../assets/icons/SettingsIcon.svg'
-import SidebarIcon from '../../../assets/icons/SidebarIcon.svg'
-import PlusIcon from '../../../assets/icons/PlusIcon.svg'
-import UiButton from '../../shared/UiButton.vue'
+import SidebarHeader from './SidebarHeader.vue'
+import SidebarFooter from './SidebarFooter.vue'
 
-const { isCollapsed, toggle } = useSidebarState()
+const { isCollapsed } = useSidebarState()
 </script>
 
 <style scoped>
@@ -76,16 +52,6 @@ const { isCollapsed, toggle } = useSidebarState()
   position: relative;
   z-index: 100;
   overflow: hidden;
-}
-
-.sidebar-btn {
-  width: 248px;
-  height: 45px;
-}
-
-.btn-container {
-  display: flex;
-  justify-content: center;
 }
 
 .sidebar.collapsed {
@@ -114,12 +80,6 @@ const { isCollapsed, toggle } = useSidebarState()
   margin-top: 20px;
 }
 
-.sidebar.collapsed .username,
-.sidebar.collapsed .chat-history,
-.sidebar.collapsed .sidebar-footer {
-  display: none;
-}
-
 .sidebar-container {
   display: flex;
   flex-direction: column;
@@ -127,49 +87,6 @@ const { isCollapsed, toggle } = useSidebarState()
   padding: 24px;
   height: 100%;
   box-sizing: border-box;
-}
-
-.sidebar-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 40px;
-  width: 100%;
-  transition: all 0.3s ease;
-}
-
-.header-content {
-  display: flex;
-  align-items: center;
-  gap: 12px;
-}
-
-.avatar {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  object-fit: cover;
-  background: var(--neutral-400);
-  flex-shrink: 0;
-}
-
-.username {
-  margin: 0;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  max-width: 150px;
-}
-
-.header-actions {
-  display: flex;
-  gap: 16px;
-  align-items: center;
-}
-
-.header-actions.collapsed {
-  flex-direction: column;
-  gap: 32px;
 }
 
 .icon {
@@ -224,11 +141,6 @@ const { isCollapsed, toggle } = useSidebarState()
   text-overflow: ellipsis;
 }
 
-.sidebar-footer {
-  margin-top: auto;
-  padding-top: 20px;
-}
-
 @media (max-width: 1023px) {
   .sidebar:not(.collapsed) {
     width: 240px;
@@ -259,16 +171,17 @@ const { isCollapsed, toggle } = useSidebarState()
     top: 0;
     left: 0;
     height: 100vh;
-    width: 60px;
-    min-width: 60px;
+    min-width: 0;
     z-index: 100;
-    transform: translateX(0);
+    transform: translateX(-100%);
+    position: fixed;
     transition: width 0.3s ease-in-out;
+    transition: transform 0.3s ease-in-out;
   }
 
   .sidebar:not(.collapsed) {
+    transform: translate(0);
     width: 280px;
-    min-width: 280px;
     box-shadow: var(--sh-neutral-medium);
     z-index: 100;
   }

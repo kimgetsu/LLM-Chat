@@ -1,11 +1,22 @@
 <template>
   <div class="chat-container">
     <header class="chat-header">
+      <UiButton
+        v-if="isMobile"
+        size="default"
+        variant="tertiary"
+        :onlyIcon="true"
+        @click="toggle"
+        class="sidebar-header-btn"
+      >
+        <template #left> <SidebarIcon /> </template>
+      </UiButton>
+
       <h1 class="d-3 medium">Chats</h1>
 
-      <UiButton variant="primary" size="default">
+      <UiButton variant="primary" :size="isMobile ? 'small' : 'default'" :onlyIcon="isMobile">
         <template #left> <PlusIcon /> </template>
-        <template #default>New chat</template>
+        <template #default v-if="!isMobile">New chat</template>
       </UiButton>
     </header>
 
@@ -34,6 +45,10 @@
 import PlusIcon from '../assets/icons/PlusIcon.svg'
 import SendIcon from '../assets/icons/SendIcon.svg'
 import UiButton from './shared/UiButton.vue'
+import SidebarIcon from '../assets/icons/SidebarIcon.svg'
+import { useSidebarState } from './Sidebar'
+
+const { toggle, isMobile } = useSidebarState()
 </script>
 
 <style scoped>
@@ -126,6 +141,10 @@ import UiButton from './shared/UiButton.vue'
 
 .input-btn {
   margin: 5px;
+}
+
+.sidebar-header-btn {
+  background: var(--neutral-100);
 }
 
 @media (max-width: 1023px) {
