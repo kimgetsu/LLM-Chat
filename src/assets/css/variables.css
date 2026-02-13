@@ -1,0 +1,152 @@
+:root {
+  /* Primary colors */
+  --primary-100: #2388ff;
+  --primary-200: #ff2d46;
+  --primary-300: #ffc700;
+  --primary-400: #63de77;
+
+  /* Secondary colors */
+  --secondary-100: #1777e7;
+  --secondary-200: #f6faff;
+  --secondary-300: #6d39e4;
+  --secondary-400: #f2ecff;
+  --secondary-500: #ff649c;
+  --secondary-600: #ffeff5;
+  --secondary-700: #3aacff;
+  --secondary-800: #dbf0ff;
+
+  /* Neutral colors */
+  --neutral-100: #ffffff;
+  --neutral-200: #f7f8fa;
+  --neutral-300: #f0f2f5;
+  --neutral-400: #e3e6ea;
+  --neutral-500: #bac0cc;
+  --neutral-600: #666f8d;
+  --neutral-700: #353e5c;
+  --neutral-800: #19213d;
+
+  /* Overlay colors */
+  --overlay-light-100: #ffffff66;
+  --overlay-light-200: #ffffff80;
+  --overlay-light-300: #ffffffa6;
+  --overlay-light-400: #ffffffcc;
+
+  --overlay-dark-100: #19213d66;
+  --overlay-dark-200: #19213d80;
+  --overlay-dark-300: #19213da6;
+  --overlay-dark-400: #19213dcc;
+
+  /* Gradient colors */
+  --red-gradient: linear-gradient(47deg, #df001b -1.87%, #ffdddf 101.87%);
+  --yellow-gradient: linear-gradient(45deg, #ff9416 0%, #ffe03a 100%);
+  --blue-gradient: linear-gradient(45deg, #0075ff 0%, #d0ebff 100%);
+  --green-gradient: linear-gradient(45deg, #3acd52 0%, #7dffa2 100%);
+
+  /* Shadows */
+  --sh-neutral-small: 0px 1px 3px 0px #19213d1a;
+  --sh-neutral-regular: 0px 2px 4px 0px #19213d14;
+  --sh-neutral-medium: 0px 8px 15px 0px #19213d1a;
+  --sh-neutral-large: 0px 8px 24px 0px #19213d1f;
+
+  --sh-primary-small: 0px 0px 2px 0px #4d91e13b;
+  --sh-primary-regular: 0px 4px 8px 0px #4d91e11a;
+  --sh-primary-medium: 0px 8px 15px 0px #4d91e11a;
+  --sh-primary-large: 0px 8px 24px 0px #4d91e11a;
+
+  --sh-secondary-small: 0px 0px 2px 0px #9b202f1a;
+  --sh-secondary-regular: 0px 4px 8px 0px #9b202f1a;
+  --sh-secondary-medium: 0px 8px 15px 0px #9b202f1a;
+  --sh-secondary-large: 0px 8px 24px 0px #9b202f24;
+
+  /* Background glow*/
+  --glow-color: 99 65 255;
+  --glow-opacity: 0.35;
+  --glow-size-x: 55%;
+  --glow-size-y: 90%;
+  --glow-pos-x: 50%;
+  --glow-pos-y: 100%;
+}
+
+.glow-bg {
+  background: radial-gradient(
+    var(--glow-size-x) var(--glow-size-y) at var(--glow-pos-x) var(--glow-pos-y),
+    rgb(var(--glow-color) / var(--glow-opacity)) 0%,
+    rgb(var(--glow-color) / calc(var(--glow-opacity) * 0.6)) 30%,
+    rgb(var(--glow-color) / 0) 70%
+  );
+}
+
+/* Fonts */
+
+.regular {
+  font-weight: 400;
+}
+
+.medium {
+  font-weight: 500;
+}
+
+.d-10 {
+  font-size: 72px;
+  line-height: 115%;
+}
+
+.d-9 {
+  font-size: 60px;
+  line-height: 115%;
+}
+
+.d-8 {
+  font-size: 48px;
+  line-height: 125%;
+}
+
+.d-7 {
+  font-size: 36px;
+  line-height: 125%;
+}
+
+.d-6 {
+  font-size: 30px;
+  line-height: 125%;
+}
+
+.d-5 {
+  font-size: 24px;
+  line-height: 125%;
+}
+
+.d-4 {
+  font-size: 20px;
+  line-height: 125%;
+}
+
+.d-3 {
+  font-size: 18px;
+  line-height: 125%;
+}
+
+.d-2 {
+  font-size: 16px;
+  line-height: 125%;
+}
+
+.d-1 {
+  font-size: 14px;
+  line-height: 125%;
+}
+
+.p-large {
+  font-size: 18px;
+  line-height: 150%;
+}
+
+.p-default {
+  font-size: 16px;
+  line-height: 150%;
+}
+
+.p-small {
+  font-size: 14px;
+  line-height: 150%;
+}
