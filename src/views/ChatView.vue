@@ -4,21 +4,12 @@
     <section class="content-area">
       <ChatArea />
     </section>
-
-    <div v-if="isMobile && !isCollapsed" class="mobile-overlay" @click="closeSidebar"></div>
   </div>
 </template>
 
 <script setup lang="ts">
-import ChatArea from '../components/ChatArea.vue'
-import Sidebar from '../components/Sidebar/ui/Sidebar.vue'
-import { useSidebarState } from '../components/Sidebar'
-
-const { isMobile, isCollapsed, close } = useSidebarState()
-
-const closeSidebar = () => {
-  if (!isCollapsed.value) close()
-}
+import ChatArea from '@/components/ChatArea.vue'
+import { Sidebar } from '@/components/Sidebar'
 </script>
 
 <style scoped>
@@ -41,28 +32,6 @@ const closeSidebar = () => {
 .content-area {
   position: relative;
   overflow: hidden;
-}
-
-.mobile-overlay {
-  position: fixed;
-  top: 0;
-  left: 60px;
-  right: 0;
-  bottom: 0;
-  background: rgba(0, 0, 0, 0.4);
-  z-index: 90;
-  backdrop-filter: blur(2px);
-  animation: fadeIn 0.3s ease;
-  pointer-events: auto;
-}
-
-@keyframes fadeIn {
-  from {
-    opacity: 0;
-  }
-  to {
-    opacity: 1;
-  }
 }
 
 @media (max-width: 1023px) {

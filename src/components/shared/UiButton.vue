@@ -19,22 +19,13 @@
 </template>
 
 <script setup lang="ts">
-type ButtonVariant = 'primary' | 'secondary' | 'tertiary'
-type ButtonSize = 'small' | 'default'
-type ButtonType = 'button' | 'submit' | 'reset'
-
-interface ButtonProps {
-  variant?: ButtonVariant
-  size?: ButtonSize
-  type?: ButtonType
-  onlyIcon?: boolean
-  disabled?: boolean
-}
+import { ButtonVariant, ButtonSize, ButtonType } from './button.types'
+import type { ButtonProps } from './button.types'
 
 withDefaults(defineProps<ButtonProps>(), {
-  variant: 'primary',
-  size: 'small',
-  type: 'button',
+  variant: ButtonVariant.Primary,
+  size: ButtonSize.Default,
+  type: ButtonType.Button,
   onlyIcon: false,
   disabled: false,
 })

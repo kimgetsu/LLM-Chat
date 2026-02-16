@@ -3,8 +3,8 @@
     <header class="chat-header">
       <UiButton
         v-if="isMobile"
-        size="default"
-        variant="tertiary"
+        :size="ButtonSize.Default"
+        :variant="ButtonVariant.Tertiary"
         :onlyIcon="true"
         @click="toggle"
         class="sidebar-header-btn"
@@ -14,7 +14,11 @@
 
       <h1 class="d-3 medium">Chats</h1>
 
-      <UiButton variant="primary" :size="isMobile ? 'small' : 'default'" :onlyIcon="isMobile">
+      <UiButton
+        :variant="ButtonVariant.Primary"
+        :size="isMobile ? ButtonSize.Small : ButtonSize.Default"
+        :onlyIcon="isMobile"
+      >
         <template #left> <PlusIcon /> </template>
         <template #default v-if="!isMobile">New chat</template>
       </UiButton>
@@ -30,7 +34,11 @@
           <form class="input-section">
             <input type="text" placeholder="How can I help you?" />
             <span class="input-btn">
-              <UiButton variant="primary" size="default" :onlyIcon="true">
+              <UiButton
+                :variant="ButtonVariant.Primary"
+                :size="ButtonSize.Default"
+                :onlyIcon="true"
+              >
                 <template #left> <SendIcon /> </template>
               </UiButton>
             </span>
@@ -42,13 +50,16 @@
 </template>
 
 <script setup lang="ts">
-import PlusIcon from '../assets/icons/PlusIcon.svg'
-import SendIcon from '../assets/icons/SendIcon.svg'
+import PlusIcon from '@/assets/icons/PlusIcon.svg'
+import SendIcon from '@/assets/icons/SendIcon.svg'
+import SidebarIcon from '@/assets/icons/SidebarIcon.svg'
 import UiButton from './shared/UiButton.vue'
-import SidebarIcon from '../assets/icons/SidebarIcon.svg'
 import { useSidebarState } from './Sidebar'
+import { ButtonVariant, ButtonSize } from './shared/button.types'
+import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
 
-const { toggle, isMobile } = useSidebarState()
+const { toggle } = useSidebarState()
+const { isMobile } = useAppBreakpoints()
 </script>
 
 <style scoped>
@@ -72,7 +83,7 @@ const { toggle, isMobile } = useSidebarState()
   align-items: center;
   padding: 10px 20px;
   border-bottom: 1px solid var(--neutral-400);
-  margin: 0 -20px 20px -20px;
+  margin: -10px -20px 20px -20px;
   background: var(--neutral-100);
 }
 

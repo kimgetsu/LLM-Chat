@@ -2,8 +2,8 @@
   <footer class="sidebar-footer">
     <div :class="['btn-container', { collapsed: isCollapsed }]">
       <UiButton
-        variant="primary"
-        :size="isCollapsed ? 'small' : 'default'"
+        :variant="ButtonVariant.Primary"
+        :size="isCollapsed ? ButtonSize.Small : ButtonSize.Default"
         :onlyIcon="isCollapsed"
         class="sidebar-btn"
       >
@@ -15,9 +15,10 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '../../shared/UiButton.vue'
-import PlusIcon from '../../../assets/icons/PlusIcon.svg'
-import { useSidebarState } from '../model/useSidebarState'
+import UiButton from '@/components/shared/UiButton.vue'
+import PlusIcon from '@/assets/icons/PlusIcon.svg'
+import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
+import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
 
 const { isCollapsed } = useSidebarState()
 </script>

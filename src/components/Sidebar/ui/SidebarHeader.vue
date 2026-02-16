@@ -5,10 +5,15 @@
       <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
     </div>
     <div class="header-actions" :class="{ collapsed: isCollapsed }">
-      <UiButton variant="tertiary" size="small" :onlyIcon="true">
+      <UiButton :variant="ButtonVariant.Tertiary" :size="ButtonSize.Small" :onlyIcon="true">
         <template #left> <SettingsIcon /> </template>
       </UiButton>
-      <UiButton @click="toggle" variant="tertiary" size="small" :onlyIcon="true">
+      <UiButton
+        @click="toggle"
+        :variant="ButtonVariant.Tertiary"
+        :size="ButtonSize.Small"
+        :onlyIcon="true"
+      >
         <template #left> <SidebarIcon /> </template>
       </UiButton>
     </div>
@@ -16,10 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '../../shared/UiButton.vue'
-import SettingsIcon from '../../../assets/icons/SettingsIcon.svg'
-import SidebarIcon from '../../../assets/icons/SidebarIcon.svg'
-import { useSidebarState } from '../model/useSidebarState'
+import UiButton from '@/components/shared/UiButton.vue'
+import SettingsIcon from '@/assets/icons/SettingsIcon.svg'
+import SidebarIcon from '@/assets/icons/SidebarIcon.svg'
+import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
+import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
 
 const { isCollapsed, toggle } = useSidebarState()
 </script>
@@ -66,5 +72,25 @@ const { isCollapsed, toggle } = useSidebarState()
 .header-actions.collapsed {
   flex-direction: column;
   gap: 32px;
+}
+
+.sidebar.collapsed .sidebar-header {
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  margin-bottom: 0;
+}
+
+.sidebar.collapsed .header-content {
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.sidebar.collapsed .header-actions {
+  flex-direction: column;
+  align-items: center;
+  gap: 32px;
+  margin-top: 20px;
 }
 </style>

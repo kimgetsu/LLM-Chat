@@ -1,50 +1,49 @@
 <template>
   <aside :class="['sidebar', { collapsed: isCollapsed }]">
-    <div class="sidebar-container">
-      <SidebarHeader />
-      <section v-if="!isCollapsed" class="chat-history">
-        <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
-        <ul class="chat-list">
-          <li class="chat-item">
-            <a href="#" class="chat-link">
-              <span class="d-2 regular chat-title">How to improve my English skills?</span>
-            </a>
-          </li>
-          <li class="chat-item">
-            <a href="#" class="chat-link">
-              <span class="d-2 regular chat-title">Help me debug this JS code</span>
-            </a>
-          </li>
-          <li class="chat-item">
-            <a href="#" class="chat-link">
-              <span class="d-2 regular chat-title"
-                >Write a poem about the heat of her hair, the coals in a January fire and how I burn
-                in it</span
-              >
-            </a>
-          </li>
-        </ul>
-      </section>
-      <SidebarFooter />
-    </div>
+    <SidebarHeader />
+    <SidebarChatHistory />
+    <SidebarFooter />
   </aside>
+
+  <div v-if="isMobile && !isCollapsed" class="mobile-overlay" @click="closeSidebar"></div>
 </template>
 
 <script setup lang="ts">
-import { useSidebarState } from '../model/useSidebarState'
 import SidebarHeader from './SidebarHeader.vue'
 import SidebarFooter from './SidebarFooter.vue'
+import SidebarChatHistory from './SidebarChatHistory.vue'
+import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
+import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
+import { watch } from 'vue'
 
-const { isCollapsed } = useSidebarState()
+const { isCollapsed, close } = useSidebarState()
+const { isMobile } = useAppBreakpoints()
+
+watch(
+  isMobile,
+  val => {
+    if (val) {
+      isCollapsed.value = true
+    }
+  },
+  { immediate: true }
+)
+
+const closeSidebar = () => {
+  if (!isCollapsed.value) close()
+}
 </script>
 
 <style scoped>
 .sidebar {
+  box-sizing: border-box;
   width: 296px;
   min-width: 296px;
   background: var(--neutral-200);
   display: flex;
   flex-direction: column;
+  justify-content: space-between;
+  padding: 24px;
   height: 100%;
   transition:
     width 0.4s ease-in-out,
@@ -59,86 +58,26 @@ const { isCollapsed } = useSidebarState()
   min-width: 60px;
 }
 
-.sidebar.collapsed .sidebar-header {
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  margin-bottom: 0;
-  padding: 24px 0;
+.mobile-overlay {
+  position: fixed;
+  top: 0;
+  left: 60px;
+  right: 0;
+  bottom: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 90;
+  backdrop-filter: blur(2px);
+  animation: fadeIn 0.3s ease;
+  pointer-events: auto;
 }
 
-.sidebar.collapsed .header-content {
-  flex-direction: column;
-  align-items: center;
-  gap: 16px;
-}
-
-.sidebar.collapsed .header-actions {
-  flex-direction: column;
-  align-items: center;
-  gap: 32px;
-  margin-top: 20px;
-}
-
-.sidebar-container {
-  display: flex;
-  flex-direction: column;
-  justify-content: space-between;
-  padding: 24px;
-  height: 100%;
-  box-sizing: border-box;
-}
-
-.icon {
-  display: block;
-}
-
-.chat-history {
-  flex: 1;
-  overflow-y: auto;
-  margin-bottom: 20px;
-}
-
-.history-title {
-  text-transform: uppercase;
-  margin: 0 0 16px 0;
-  letter-spacing: 0.5px;
-  color: var(--neutral-500);
-}
-
-.chat-list {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-  display: flex;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.chat-item {
-  border-radius: 8px;
-  overflow: hidden;
-}
-
-.chat-link {
-  display: block;
-  padding: 14px 12px;
-  text-decoration: none;
-  color: var(--neutral-600);
-  border-radius: 8px;
-  transition: all 0.2s ease;
-  background: transparent;
-}
-
-.chat-link:hover {
-  background: var(--neutral-400);
-}
-
-.chat-title {
-  display: block;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
 }
 
 @media (max-width: 1023px) {

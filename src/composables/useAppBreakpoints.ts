@@ -9,5 +9,17 @@ export const BREAKPOINTS = {
 } as const
 
 export function useAppBreakpoints() {
-  return useBreakpoints(BREAKPOINTS)
+  const breakpoints = useBreakpoints(BREAKPOINTS)
+
+  return {
+    sm: breakpoints.smaller('sm'),
+    md: breakpoints.smaller('md'),
+    lg: breakpoints.greater('lg'),
+    xl: breakpoints.greater('xl'),
+    xxl: breakpoints.greater('xxl'),
+
+    isMobile: breakpoints.smaller('md'),
+    isDesktop: breakpoints.greater('lg'),
+    isTablet: breakpoints.between('md', 'lg'),
+  }
 }

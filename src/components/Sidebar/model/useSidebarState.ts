@@ -1,11 +1,8 @@
-import { ref, watch } from 'vue'
-import { useAppBreakpoints } from '../../../composables/useAppBreakpoints'
+import { ref } from 'vue'
+import { createGlobalState } from '@vueuse/core'
 
-const isCollapsed = ref(false)
-
-export function useSidebarState() {
-  const breakpoints = useAppBreakpoints()
-  const isMobile = breakpoints.smaller('md')
+export const useSidebarState = createGlobalState(() => {
+  const isCollapsed = ref(false)
 
   const open = () => (isCollapsed.value = false)
 
@@ -13,15 +10,5 @@ export function useSidebarState() {
 
   const toggle = () => (isCollapsed.value = !isCollapsed.value)
 
-  watch(
-    isMobile,
-    val => {
-      if (val) {
-        isCollapsed.value = true
-      }
-    },
-    { immediate: true }
-  )
-
-  return { isCollapsed, isMobile, open, close, toggle }
-}
+  return { isCollapsed, open, close, toggle }
+})
