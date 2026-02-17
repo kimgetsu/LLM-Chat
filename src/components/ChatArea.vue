@@ -198,7 +198,7 @@ const { isMobile } = useAppBreakpoints()
 
   .chat-header {
     padding: 10px 15px;
-    margin: 0 -15px 15px -15px;
+    margin: -15px -15px 15px -15px;
   }
 
   .welcome-card {
