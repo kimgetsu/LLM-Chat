@@ -1,43 +1,25 @@
 <template>
-  <div class="active-chat-container">
-    <!-- Возможно тут лучше реализовать дату первого сообщения -->
-    <!-- Но я не понял как мне вытащить что-то из v-for и преобразовать перед отправкой -->
-    <!-- <p class="creation-date d-1 regular">Today 2:45 PM</p> -->
+  <ChatDivider v-if="firstMessageDate" :date="firstMessageDate" />
 
-    <div class="dialog-container">
-      <div class="messages">
-        <!-- Для сравнения сообщений с разными ролями
-        <ChatMessageItem
-          class="message-item"
-          role="user"
-          content="Hello world"
-          :createdAt="33333333333"
-        /> -->
-
-        <ChatMessageItem
-          class="message-item"
-          v-for="(message, idx) in data"
-          :key="message.id"
-          role="assistant"
-          :content="message.content"
-          :createdAt="message.createdAt"
-          :isFirst="idx === 0"
-        />
-      </div>
-
-      <div class="input-wrapper">
-        <ChatInput variant="expanded" @send="handleSend" />
-      </div>
+  <div class="messages">
+    <div v-for="message in data" :key="message.id" class="message-item">
+      <ChatMessageItem role="assistant" :content="message.content" :createdAt="message.createdAt" />
     </div>
+  </div>
+
+  <div class="input-wrapper">
+    <ChatInput variant="expanded" @send="handleSend" />
   </div>
 </template>
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
+import ChatDivider from './ChatDivider.vue'
 
 const data = ref<Message[]>([])
+const firstMessageDate = computed(() => data.value[0]?.createdAt)
 
 interface Message {
   id: number
@@ -57,51 +39,22 @@ const handleSend = (text: string) => {
 </script>
 
 <style scoped>
-.active-chat-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-}
-
-.dialog-container {
-  display: flex;
-  flex-direction: column;
-  flex: 1;
-  min-height: 0;
-  padding: 0 20px 20px;
-}
-
 .messages {
-  flex: 1;
-  min-height: 0;
-  overflow-y: auto;
-  padding: 16px 0;
+  width: 100%;
+  max-width: 564px;
+  margin: 0 auto;
 }
 
 .input-wrapper {
   flex-shrink: 0;
+  position: absolute;
+  bottom: 0;
+  left: 50;
+  width: 100;
+  margin-bottom: 10px;
 }
 
 .message-item {
   margin-bottom: 20px;
 }
-
-/* Оставлю на случай, если придётся переносить дату первого месседжа сюда */
-/* .creation-date {
-  display: flex;
-  justify-content: center;
-  flex-shrink: 0;
-  padding: 8px;
-  position: relative;
-  color: var(--neutral-600);
-}
-.creation-date::before,
-.creation-date::after {
-  content: '';
-  flex: 1;
-  border-bottom: 1px solid var(--neutral-300);
-  margin: auto 12px;
-  max-width: 228px;
-} */
 </style>

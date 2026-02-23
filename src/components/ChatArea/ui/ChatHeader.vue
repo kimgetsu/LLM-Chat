@@ -43,7 +43,7 @@ const { isMobile } = useAppBreakpoints()
   align-items: center;
   padding: 10px 20px;
   border-bottom: 1px solid var(--neutral-400);
-  margin: -10px -20px 20px -20px;
+  margin-top: -10px;
   background: var(--neutral-100);
 }
 

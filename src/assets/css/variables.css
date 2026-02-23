@@ -65,6 +65,9 @@
   --glow-size-y: 90%;
   --glow-pos-x: 50%;
   --glow-pos-y: 100%;
+
+  /* Expanded input height */
+  --expanded-height: 172px;
 }
 
 .glow-bg {

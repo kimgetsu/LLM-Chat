@@ -25,20 +25,21 @@ const test = false
   height: 100%;
   min-height: 0;
   background: var(--neutral-100);
-  padding: 20px;
+  padding: 20px 0;
   border-radius: 16px;
   border: 1px solid var(--neutral-400);
 }
 
 .chat-main {
-  flex: 1;
-  min-height: 0;
   align-items: center;
   display: flex;
   flex-direction: column;
   width: 100%;
-  max-width: 900px;
+  max-width: 100%;
   margin: 0 auto;
+  overflow: auto;
+  padding-bottom: var(--expanded-height);
+  padding-top: 16px;
 }
 
 @media (max-width: 1023px) {

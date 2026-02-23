@@ -8,7 +8,7 @@
 </template>
 
 <script setup lang="ts">
-import ChatArea from '@/components/ChatArea/ui/ChatArea.vue'
+import { ChatArea } from '@/components/ChatArea'
 import { Sidebar } from '@/components/Sidebar'
 </script>
 
