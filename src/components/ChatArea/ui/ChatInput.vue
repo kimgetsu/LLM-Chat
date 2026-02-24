@@ -23,7 +23,7 @@ import { ButtonVariant, ButtonSize, ButtonType } from '@/components/shared/butto
 import UiButton from '@/components/shared/UiButton.vue'
 import SendIcon from '@/assets/icons/SendIcon.svg'
 import { ref } from 'vue'
-
+import { testOpenRouter } from '@/utils/testOpenRouter'
 const message = ref('')
 
 defineProps<{
@@ -38,6 +38,7 @@ const handleSubmit = () => {
   if (!message.value.trim()) return
 
   emit('send', message.value)
+  testOpenRouter()
   message.value = ''
 }
 </script>
