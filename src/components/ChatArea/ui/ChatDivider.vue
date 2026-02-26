@@ -1,14 +1,13 @@
 <template>
-  <p class="creation-date d-1 regular">{{ dateStr }} | {{ timeStr }}</p>
+  <p class="creation-date d-1 regular">
+    {{ formatDate(props.date) }} | {{ formatTime(props.date) }}
+  </p>
 </template>
 
 <script setup lang="ts">
-import { date, time } from '@/utils/date'
+import { formatDate, formatTime } from '@/utils/date'
 
 const props = defineProps<{ date: number }>()
-
-const dateStr = date(props.date)
-const timeStr = time(props.date)
 </script>
 
 <style>

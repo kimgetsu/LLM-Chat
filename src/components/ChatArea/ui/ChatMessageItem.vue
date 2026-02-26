@@ -18,7 +18,8 @@
 <script setup lang="ts">
 import Avatar from '@/assets/icons/Avatar.png'
 import AssistantAvatar from '@/assets/icons/AssistantAvatar.png'
-import { time } from '@/utils/date'
+import { formatTime } from '@/utils/date'
+import { computed } from 'vue'
 
 const mProps = defineProps<{
   role: 'user' | 'assistant'
@@ -26,9 +27,7 @@ const mProps = defineProps<{
   createdAt: number
 }>()
 
-// const createdTime = new Date(mProps.createdAt)
-const createdTime = mProps.createdAt
-const timeStr = time(createdTime)
+const timeStr = computed(() => formatTime(mProps.createdAt))
 </script>
 
 <style scoped>

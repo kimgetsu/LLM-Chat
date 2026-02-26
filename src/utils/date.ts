@@ -1,8 +1,8 @@
 import { format } from 'date-fns'
 
-export const time = (t: number) => {
-  return format(t, 'h:mm a')
+export const formatTime = (timestamp: number) => {
+  return format(timestamp, 'h:mm a')
 }
-export const date = (t: number) => {
-  return format(t, 'MMM d').toUpperCase()
+export const formatDate = (timestamp: number) => {
+  return format(timestamp, 'MMM d').toUpperCase()
 }
