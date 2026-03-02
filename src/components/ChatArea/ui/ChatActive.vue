@@ -18,15 +18,16 @@
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
-import { ref, computed, nextTick } from 'vue'
+import { ref, computed, nextTick, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { v4 as uuidv4 } from 'uuid'
-import { openRouterApi } from '../api/openRouter.api'
+import { useSendMessage } from '../model/useSendMessage'
 
 const data = ref<Message[]>([])
-const messagesContainer = ref<HTMLDivElement | null>(null)
+const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
 const firstMessageDate = computed(() => data.value[0]?.createdAt)
+const { sendMessage } = useSendMessage()
 
 interface Message {
   id: string
@@ -41,40 +42,34 @@ const scrollToNewMessage = () => {
   }
 }
 
+watch(
+  data,
+  async () => {
+    await nextTick()
+    scrollToNewMessage()
+  },
+  { deep: true }
+)
+
 const handleSend = async (text: string) => {
-  const userMessage = {
+  const userMessage: Message = {
     id: uuidv4(),
     role: 'user',
     content: text,
     createdAt: Date.now(),
   }
-
   data.value.push(userMessage)
-  await nextTick()
-  scrollToNewMessage()
 
-  try {
-    const messagesForApi = data.value.map(msg => ({
-      role: msg.role,
-      content: msg.content,
-    }))
+  const assistantResponse = await sendMessage(data.value)
 
-    const assistantResponse = await openRouterApi.sendMessage(messagesForApi)
-
-    const assistantMessage = {
-      id: uuidv4(),
-      role: 'assistant',
-      content: assistantResponse,
-      createdAt: Date.now(),
-    }
-    data.value.push(assistantMessage)
-  } catch (error) {
-    console.error('Ошибка при обращении к OpenRouter:', error)
-    // Позже можно добавить сообщение об ошибке
-  } finally {
-    await nextTick()
-    scrollToNewMessage()
+  const assistantMessage: Message = {
+    id: uuidv4(),
+    role: 'assistant',
+    content: assistantResponse,
+    createdAt: Date.now(),
   }
+
+  data.value.push(assistantMessage)
 }
 </script>
 

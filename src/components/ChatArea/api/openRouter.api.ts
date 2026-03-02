@@ -17,7 +17,6 @@ interface OpenRouterResponse {
 
 export const openRouterApi = {
   async sendMessage(messages: OpenRouterMessage[]) {
-    const response = await http.post<OpenRouterResponse>('/chat/completions', { model, messages })
-    return response.data.choices[0]?.message.content
+    return await http.post<OpenRouterResponse>('/chat/completions', { model, messages })
   },
 }
