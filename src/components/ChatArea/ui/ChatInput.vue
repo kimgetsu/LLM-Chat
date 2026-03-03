@@ -1,6 +1,10 @@
 <template>
   <form :class="['input-section', variant]" @submit.prevent="handleSubmit">
-    <textarea v-model="message" placeholder="How can I help you?"></textarea>
+    <textarea
+      v-model="message"
+      placeholder="How can I help you?"
+      @keydown="handleKeyDown"
+    ></textarea>
     <span class="input-btn">
       <UiButton
         :variant="ButtonVariant.Primary"
@@ -32,6 +36,13 @@ defineProps<{
 const emit = defineEmits<{
   (e: 'send', value: string): void
 }>()
+
+const handleKeyDown = (e: KeyboardEvent) => {
+  if (e.key === 'Enter' && !e.shiftKey) {
+    e.preventDefault()
+    handleSubmit()
+  }
+}
 
 const handleSubmit = () => {
   if (!message.value.trim()) return
