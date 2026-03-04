@@ -2,13 +2,18 @@
   <div class="app-container">
     <Sidebar />
     <section class="content-area">
-      <ChatArea />
+      <ChatHeader />
+      <div class="chat-main">
+        <RouterView />
+      </div>
+      <!-- <ChatArea /> -->
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-import { ChatArea } from '@/components/ChatArea'
+// import { ChatArea } from '@/components/ChatArea'
+import ChatHeader from '@/components/ChatArea/ui/ChatHeader.vue'
 import { Sidebar } from '@/components/Sidebar'
 </script>
 
@@ -31,12 +36,38 @@ import { Sidebar } from '@/components/Sidebar'
 
 .content-area {
   position: relative;
-  overflow: hidden;
+  /* overflow: hidden; */
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  background: var(--neutral-100);
+  padding: 20px 0;
+  border-radius: 16px;
+  border: 1px solid var(--neutral-400);
+}
+
+.chat-main {
+  align-items: center;
+  display: flex;
+  flex-direction: column;
+  width: 100%;
+  max-width: 100%;
+  margin: 0 auto;
+  overflow: auto;
+  padding-bottom: var(--expanded-height);
+  padding-top: 16px;
 }
 
 @media (max-width: 1023px) {
   .app-container:not(:has(.sidebar.collapsed)) {
     grid-template-columns: 240px 1fr;
+  }
+
+  .content-area {
+    padding: 20px;
+    border-radius: 14px;
   }
 }
 
@@ -55,6 +86,8 @@ import { Sidebar } from '@/components/Sidebar'
     overflow-y: auto;
     position: relative;
     box-sizing: border-box;
+    padding: 15px;
+    border-radius: 12px;
   }
 
   .content-area .chat-container {
@@ -67,6 +100,12 @@ import { Sidebar } from '@/components/Sidebar'
     box-sizing: border-box;
     position: relative;
     z-index: 1;
+  }
+}
+
+@media (max-width: 359px) {
+  .content-area {
+    padding: 12px;
   }
 }
 </style>

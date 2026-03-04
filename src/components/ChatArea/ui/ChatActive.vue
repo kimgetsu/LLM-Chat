@@ -9,6 +9,8 @@
         :createdAt="message.createdAt"
       />
     </div>
+    <p v-if="isLoading" class="loading-message"><TypingLoader /></p>
+    <p v-if="error" class="error-message">⚠ {{ error }}</p>
   </div>
 
   <div class="input-wrapper">
@@ -18,16 +20,17 @@
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
-import { ref, computed, nextTick, useTemplateRef, watch } from 'vue'
+import { ref, computed, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { v4 as uuidv4 } from 'uuid'
 import { useSendMessage } from '../model/useSendMessage'
+import TypingLoader from '@/components/shared/TypingLoader.vue'
 
 const data = ref<Message[]>([])
 const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
 const firstMessageDate = computed(() => data.value[0]?.createdAt)
-const { sendMessage } = useSendMessage()
+const { sendMessage, isLoading, error } = useSendMessage()
 
 interface Message {
   id: string
@@ -42,14 +45,7 @@ const scrollToNewMessage = () => {
   }
 }
 
-watch(
-  data,
-  async () => {
-    await nextTick()
-    scrollToNewMessage()
-  },
-  { deep: true }
-)
+watch(() => data.value.length, scrollToNewMessage, { flush: 'post' })
 
 const handleSend = async (text: string) => {
   const userMessage: Message = {
@@ -78,19 +74,24 @@ const handleSend = async (text: string) => {
   width: 100%;
   max-width: 564px;
   margin: 0 auto;
-
   overflow-y: auto;
+  padding-bottom: var(--expanded-height);
 }
 
 .input-wrapper {
-  flex-shrink: 0;
   position: absolute;
-  bottom: 0;
-  left: 50;
-  margin-bottom: 10px;
+  bottom: 8px;
+  left: 5px;
+  right: 5px;
+  display: flex;
+  justify-content: center;
 }
 
 .message-item {
   margin-bottom: 20px;
+}
+
+.error-message {
+  color: var(--primary-200);
 }
 </style>

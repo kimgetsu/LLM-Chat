@@ -63,7 +63,8 @@ const handleSubmit = () => {
 }
 
 .expanded {
-  width: 574px;
+  width: 100%;
+  max-width: 574px;
   height: var(--expanded-height);
   background: var(--neutral-100);
   box-shadow: var(--sh-neutral-regular);
