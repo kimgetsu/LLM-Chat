@@ -1,19 +1,25 @@
 <template>
   <div class="welcome-card glow-bg">
-    <!-- glow-bg -->
     <div class="welcome-content">
       <div class="text-section">
         <h2 class="d-5 medium">Welcome back, Denis</h2>
         <p class="p-default regular">Lorem ipsum dolor sit amet, consectetur adipisicing.</p>
       </div>
 
-      <ChatInput variant="compact" />
+      <ChatInput variant="compact" @send="handleNewChat" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
+import { useChatNavigation } from '@/composables/useChatNavigation'
+
+const { createAndOpenChat } = useChatNavigation()
+
+const handleNewChat = (message: string) => {
+  createAndOpenChat(message)
+}
 </script>
 
 <style scoped>

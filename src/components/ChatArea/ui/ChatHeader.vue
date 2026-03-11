@@ -17,6 +17,7 @@
       :variant="ButtonVariant.Primary"
       :size="isMobile ? ButtonSize.Small : ButtonSize.Default"
       :onlyIcon="isMobile"
+      @click="handleNewChat"
     >
       <template #left> <PlusIcon /> </template>
       <template #default v-if="!isMobile">New chat</template>
@@ -31,9 +32,15 @@ import UiButton from '@/components/shared/UiButton.vue'
 import { useSidebarState } from '@/components/Sidebar'
 import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
 import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
+import { useChatNavigation } from '@/composables/useChatNavigation'
 
 const { toggle } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
+const { createAndOpenChat } = useChatNavigation()
+
+const handleNewChat = () => {
+  createAndOpenChat()
+}
 </script>
 
 <style scoped>

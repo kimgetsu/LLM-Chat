@@ -2,7 +2,7 @@
   <ChatDivider v-if="firstMessageDate" :date="firstMessageDate" />
 
   <div class="messages" ref="messagesContainer">
-    <div v-for="message in chatStore.currentMessages" :key="message.id" class="message-item">
+    <div v-for="message in currentMessages" :key="message.id" class="message-item">
       <ChatMessageItem
         :role="message.role"
         :content="message.content"
@@ -23,25 +23,26 @@ import ChatInput from './ChatInput.vue'
 import { computed, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
-// import { v4 as uuidv4 } from 'uuid'
 import { useSendMessage } from '../model/useSendMessage'
 import TypingLoader from '@/components/shared/TypingLoader.vue'
-
 import { useChatStore } from '@/stores/chatStore'
+import { useRoute, useRouter } from 'vue-router'
+
+const route = useRoute()
+const router = useRouter()
 const chatStore = useChatStore()
 
-// const data = ref<Message[]>([])
-
-const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
-const firstMessageDate = computed(() => chatStore.currentMessages[0]?.createdAt)
 const { sendMessage, isLoading, error } = useSendMessage()
+const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
+const firstMessageDate = computed(() => currentMessages.value[0]?.createdAt)
 
-// interface Message {
-//   id: string
-//   role: 'user' | 'assistant'
-//   content: string
-//   createdAt: number
-// }
+const currentChatId = computed(() => {
+  return route.params.chatId as string
+})
+
+const currentMessages = computed(() => {
+  return chatStore.messagesByChatId[currentChatId.value] || []
+})
 
 const scrollToNewMessage = () => {
   if (messagesContainer.value) {
@@ -49,36 +50,20 @@ const scrollToNewMessage = () => {
   }
 }
 
-watch(() => chatStore.currentMessages.length, scrollToNewMessage, { flush: 'post' })
-
-// const handleSend = async (text: string) => {
-//   const userMessage: Message = {
-//     id: uuidv4(),
-//     role: 'user',
-//     content: text,
-//     createdAt: Date.now(),
-//   }
-//   data.value.push(userMessage)
-
-//   const assistantResponse = await sendMessage(data.value)
-
-//   const assistantMessage: Message = {
-//     id: uuidv4(),
-//     role: 'assistant',
-//     content: assistantResponse,
-//     createdAt: Date.now(),
-//   }
-
-//   data.value.push(assistantMessage)
-// }
+watch(() => currentMessages.value.length, scrollToNewMessage, { flush: 'post' })
 
 const handleSend = async (text: string) => {
-  const chatId = chatStore.currentChatId ?? chatStore.createChat()
+  let chatId = currentChatId.value
+
+  if (!chatId) {
+    chatId = chatStore.createChat()
+    router.push(`/chat/${chatId}`)
+  }
 
   chatStore.addMessage(chatId, 'user', text)
 
   const assistantResponse = await sendMessage(
-    chatStore.currentMessages.map(m => ({
+    currentMessages.value.map(m => ({
       role: m.role,
       content: m.content,
     }))

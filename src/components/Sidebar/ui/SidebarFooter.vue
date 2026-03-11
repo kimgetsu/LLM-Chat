@@ -6,6 +6,7 @@
         :size="isCollapsed ? ButtonSize.Small : ButtonSize.Default"
         :onlyIcon="isCollapsed"
         class="sidebar-btn"
+        @click="handleNewChat"
       >
         <template #left><PlusIcon /></template>
         <template #default v-if="!isCollapsed">Start new chat</template>
@@ -19,8 +20,14 @@ import UiButton from '@/components/shared/UiButton.vue'
 import PlusIcon from '@/assets/icons/PlusIcon.svg'
 import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
 import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
+import { useChatNavigation } from '@/composables/useChatNavigation'
 
 const { isCollapsed } = useSidebarState()
+const { createAndOpenChat } = useChatNavigation()
+
+const handleNewChat = () => {
+  createAndOpenChat()
+}
 </script>
 
 <style scoped>

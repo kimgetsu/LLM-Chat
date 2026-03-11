@@ -25,31 +25,17 @@ interface Message {
 }
 
 export const useChatStore = defineStore('chat', () => {
-  // state
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
-  const currentChatId = ref<string | null>(null)
   const initialized = ref(false)
 
-  // getters
-  const currentChat = computed(() => {
-    chats.value.find(chat => chat.id === currentChatId.value)
-  })
-
-  const currentMessages = computed(() => {
-    if (!currentChatId.value) return []
-    return messagesByChatId.value[currentChatId.value] || []
-  })
-
   const sortedChats = computed(() => {
-    ;[...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
+    return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  //actions
   function resetToDefault() {
     chats.value = []
     messagesByChatId.value = {}
-    currentChatId.value = null
   }
 
   function saveToStorage() {
@@ -72,9 +58,6 @@ export const useChatStore = defineStore('chat', () => {
 
       chats.value = data.chats
       messagesByChatId.value = data.messagesByChatId
-      if (chats.value.length && !currentChatId.value) {
-        currentChatId.value = chats.value[0]!.id
-      }
     } catch (e) {
       console.error('Ошибка чтения localStorage', e)
       resetToDefault()
@@ -96,8 +79,6 @@ export const useChatStore = defineStore('chat', () => {
 
     chats.value.push(newChat)
     messagesByChatId.value[id] = []
-    currentChatId.value = id
-
     saveToStorage()
     return id
   }
@@ -160,21 +141,11 @@ export const useChatStore = defineStore('chat', () => {
     saveToStorage()
   }
 
-  function setCurrentChat(chatId: string) {
-    currentChatId.value = chatId
-    saveToStorage()
-  }
-
   return {
     chats,
     messagesByChatId,
-    currentChatId,
     initialized,
-
-    currentChat,
-    currentMessages,
     sortedChats,
-
     resetToDefault,
     saveToStorage,
     loadFromStorage,
@@ -182,6 +153,5 @@ export const useChatStore = defineStore('chat', () => {
     updateChatTitle,
     addMessage,
     updateMessage,
-    setCurrentChat,
   }
 })

@@ -2,23 +2,10 @@
   <section v-if="!isCollapsed" class="chat-history">
     <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
     <ul class="chat-list">
-      <li class="chat-item">
-        <a href="#" class="chat-link">
-          <span class="d-2 regular chat-title">How to improve my English skills?</span>
-        </a>
-      </li>
-      <li class="chat-item">
-        <a href="#" class="chat-link">
-          <span class="d-2 regular chat-title">Help me debug this JS code</span>
-        </a>
-      </li>
-      <li class="chat-item">
-        <a href="#" class="chat-link">
-          <span class="d-2 regular chat-title"
-            >Write a poem about the heat of her hair, the coals in a January fire and how I burn in
-            it</span
-          >
-        </a>
+      <li v-for="chat in chats" :key="chat.id" class="chat-item">
+        <router-link :to="`/chat/${chat.id}`" class="chat-link">
+          <span class="d-2 regular chat-title">{{ chat.title }}</span>
+        </router-link>
       </li>
     </ul>
   </section>
@@ -26,8 +13,11 @@
 
 <script setup lang="ts">
 import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
+import { useChatStore } from '@/stores/chatStore'
 
 const { isCollapsed } = useSidebarState()
+const chatStore = useChatStore()
+const chats = chatStore.chats
 </script>
 
 <style scoped>
