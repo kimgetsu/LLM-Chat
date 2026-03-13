@@ -1,19 +1,43 @@
 <template>
   <div class="welcome-card glow-bg">
-    <!-- glow-bg -->
     <div class="welcome-content">
       <div class="text-section">
         <h2 class="d-5 medium">Welcome back, Denis</h2>
         <p class="p-default regular">Lorem ipsum dolor sit amet, consectetur adipisicing.</p>
       </div>
 
-      <ChatInput variant="compact" />
+      <ChatInput variant="compact" @send="createAndOpenChat" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
+import { useRouter } from 'vue-router'
+import { useChatStore } from '@/stores/chatStore'
+import { useSendMessage } from '@/components/ChatArea/model/useSendMessage'
+
+const router = useRouter()
+const chatStore = useChatStore()
+const { sendMessage } = useSendMessage()
+
+const createAndOpenChat = async (initialMessage?: string) => {
+  const id = chatStore.createChat()
+
+  await router.push(`/chat/${id}`)
+
+  if (initialMessage) {
+    chatStore.addMessage(id, 'user', initialMessage)
+    const assistantResponse = await sendMessage([
+      {
+        role: 'user',
+        content: initialMessage,
+      },
+    ])
+    chatStore.addMessage(id, 'assistant', assistantResponse)
+  }
+  return id
+}
 </script>
 
 <style scoped>

@@ -6,14 +6,12 @@
       <div class="chat-main">
         <RouterView />
       </div>
-      <!-- <ChatArea /> -->
     </section>
   </div>
 </template>
 
 <script setup lang="ts">
-// import { ChatArea } from '@/components/ChatArea'
-import ChatHeader from '@/components/ChatArea/ui/ChatHeader.vue'
+import { ChatHeader } from '@/components/ChatArea'
 import { Sidebar } from '@/components/Sidebar'
 </script>
 
@@ -36,7 +34,6 @@ import { Sidebar } from '@/components/Sidebar'
 
 .content-area {
   position: relative;
-  /* overflow: hidden; */
   flex: 1;
   display: flex;
   flex-direction: column;
