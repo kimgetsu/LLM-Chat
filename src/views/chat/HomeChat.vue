@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-import ChatWelcomeCard from '@/components/ChatArea/ui/ChatWelcomeCard.vue'
+import { ChatWelcomeCard } from '@/components/ChatArea'
 </script>

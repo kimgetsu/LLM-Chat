@@ -11,7 +11,7 @@
 </template>
 
 <script setup lang="ts">
-import ChatHeader from '@/components/ChatArea/ui/ChatHeader.vue'
+import { ChatHeader } from '@/components/ChatArea'
 import { Sidebar } from '@/components/Sidebar'
 </script>
 

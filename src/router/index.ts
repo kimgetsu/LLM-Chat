@@ -1,6 +1,11 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useChatStore } from '@/stores/chatStore'
 
+enum RouteNames {
+  HomePage = 'home',
+  ChatPage = 'chat',
+}
+
 const routes = [
   {
     path: '/',
@@ -8,12 +13,12 @@ const routes = [
     children: [
       {
         path: '/',
-        name: 'home',
+        name: RouteNames.HomePage,
         component: () => import('@/views/chat/HomeChat.vue'),
       },
       {
         path: 'chat/:chatId',
-        name: 'chat',
+        name: RouteNames.ChatPage,
         component: () => import('@/views/chat/Chat.vue'),
       },
     ],
@@ -32,17 +37,17 @@ router.beforeEach(to => {
     chatStore.loadFromStorage()
   }
 
-  if (to.name === 'chat') {
+  if (to.name === RouteNames.ChatPage) {
     const chatId = to.params.chatId as string
 
     if (!chatId) {
-      return { name: 'home' }
+      return { name: RouteNames.HomePage }
     }
 
     const exists = chatStore.chats.some(c => c.id === chatId)
 
     if (!exists) {
-      return { name: 'home' }
+      return { name: RouteNames.HomePage }
     }
   }
 })

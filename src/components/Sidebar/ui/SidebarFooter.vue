@@ -20,13 +20,13 @@ import UiButton from '@/components/shared/UiButton.vue'
 import PlusIcon from '@/assets/icons/PlusIcon.svg'
 import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
 import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
-import { useChatNavigation } from '@/composables/useChatNavigation'
+import { useRouter } from 'vue-router'
 
+const router = useRouter()
 const { isCollapsed } = useSidebarState()
-const { createAndOpenChat } = useChatNavigation()
 
 const handleNewChat = () => {
-  createAndOpenChat()
+  router.push('/')
 }
 </script>
 

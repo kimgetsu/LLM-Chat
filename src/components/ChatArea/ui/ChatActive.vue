@@ -14,7 +14,7 @@
   </div>
 
   <div class="input-wrapper">
-    <ChatInput variant="expanded" @send="handleSend" />
+    <ChatInput variant="expanded" @send="handleSend" :key="currentChatId" />
   </div>
 </template>
 

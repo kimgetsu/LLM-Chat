@@ -2,8 +2,16 @@
   <section v-if="!isCollapsed" class="chat-history">
     <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
     <ul class="chat-list">
-      <li v-for="chat in chats" :key="chat.id" class="chat-item">
-        <router-link :to="`/chat/${chat.id}`" class="chat-link">
+      <li
+        v-for="chat in chatStore.sortedChats"
+        :key="chat.id"
+        class="chat-item"
+        @click="closeSidebarOnMobile"
+      >
+        <router-link
+          :to="`/chat/${chat.id}`"
+          :class="['chat-link', route.params.chatId === chat.id ? 'selected-chat' : '']"
+        >
           <span class="d-2 regular chat-title">{{ chat.title }}</span>
         </router-link>
       </li>
@@ -14,10 +22,19 @@
 <script setup lang="ts">
 import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
 import { useChatStore } from '@/stores/chatStore'
+import { useRoute } from 'vue-router'
+import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
 
-const { isCollapsed } = useSidebarState()
+const { isCollapsed, close } = useSidebarState()
+const { isMobile } = useAppBreakpoints()
 const chatStore = useChatStore()
-const chats = chatStore.chats
+const route = useRoute()
+
+const closeSidebarOnMobile = () => {
+  if (isMobile.value) {
+    close()
+  }
+}
 </script>
 
 <style scoped>
@@ -59,7 +76,7 @@ const chats = chatStore.chats
 }
 
 .chat-link:hover {
-  background: var(--neutral-400);
+  background: var(--neutral-300);
 }
 
 .chat-title {
@@ -67,5 +84,9 @@ const chats = chatStore.chats
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.selected-chat {
+  background: var(--neutral-400);
 }
 </style>

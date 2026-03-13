@@ -11,7 +11,7 @@
       <template #left> <SidebarIcon /> </template>
     </UiButton>
 
-    <h1 class="d-3 medium">Chats</h1>
+    <h1 class="d-3 medium">{{ chatTitle }}</h1>
 
     <UiButton
       :variant="ButtonVariant.Primary"
@@ -32,14 +32,28 @@ import UiButton from '@/components/shared/UiButton.vue'
 import { useSidebarState } from '@/components/Sidebar'
 import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
 import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
-import { useChatNavigation } from '@/composables/useChatNavigation'
+import { useRoute, useRouter } from 'vue-router'
+import { computed } from 'vue'
+import { useChatStore } from '@/stores/chatStore'
 
 const { toggle } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
-const { createAndOpenChat } = useChatNavigation()
+const route = useRoute()
+const router = useRouter()
+const chatStore = useChatStore()
+
+const chatTitle = computed(() => {
+  const chatId = route.params.chatId
+
+  if (!chatId) {
+    return 'Chats'
+  }
+
+  return chatStore.chats.find(c => c.id === chatId)?.title
+})
 
 const handleNewChat = () => {
-  createAndOpenChat()
+  router.push('/')
 }
 </script>
 

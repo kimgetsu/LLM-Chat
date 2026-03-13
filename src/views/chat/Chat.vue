@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-import ChatActive from '@/components/ChatArea/ui/ChatActive.vue'
+import { ChatActive } from '@/components/ChatArea'
 </script>

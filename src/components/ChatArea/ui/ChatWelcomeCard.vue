@@ -6,19 +6,37 @@
         <p class="p-default regular">Lorem ipsum dolor sit amet, consectetur adipisicing.</p>
       </div>
 
-      <ChatInput variant="compact" @send="handleNewChat" />
+      <ChatInput variant="compact" @send="createAndOpenChat" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
-import { useChatNavigation } from '@/composables/useChatNavigation'
+import { useRouter } from 'vue-router'
+import { useChatStore } from '@/stores/chatStore'
+import { useSendMessage } from '@/components/ChatArea/model/useSendMessage'
 
-const { createAndOpenChat } = useChatNavigation()
+const router = useRouter()
+const chatStore = useChatStore()
+const { sendMessage } = useSendMessage()
 
-const handleNewChat = (message: string) => {
-  createAndOpenChat(message)
+const createAndOpenChat = async (initialMessage?: string) => {
+  const id = chatStore.createChat()
+
+  await router.push(`/chat/${id}`)
+
+  if (initialMessage) {
+    chatStore.addMessage(id, 'user', initialMessage)
+    const assistantResponse = await sendMessage([
+      {
+        role: 'user',
+        content: initialMessage,
+      },
+    ])
+    chatStore.addMessage(id, 'assistant', assistantResponse)
+  }
+  return id
 }
 </script>
 
