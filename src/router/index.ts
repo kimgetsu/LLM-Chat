@@ -1,7 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useChatStore } from '@/stores/chatStore'
 
-enum RouteNames {
+export enum RouteNames {
   HomePage = 'home',
   ChatPage = 'chat',
 }

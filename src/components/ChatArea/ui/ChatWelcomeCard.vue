@@ -15,28 +15,15 @@
 import ChatInput from './ChatInput.vue'
 import { useRouter } from 'vue-router'
 import { useChatStore } from '@/stores/chatStore'
-import { useSendMessage } from '@/components/ChatArea/model/useSendMessage'
+import { RouteNames } from '@/router'
 
 const router = useRouter()
 const chatStore = useChatStore()
-const { sendMessage } = useSendMessage()
 
 const createAndOpenChat = async (initialMessage?: string) => {
   const id = chatStore.createChat()
-
-  await router.push(`/chat/${id}`)
-
-  if (initialMessage) {
-    chatStore.addMessage(id, 'user', initialMessage)
-    const assistantResponse = await sendMessage([
-      {
-        role: 'user',
-        content: initialMessage,
-      },
-    ])
-    chatStore.addMessage(id, 'assistant', assistantResponse)
-  }
-  return id
+  const query = initialMessage ? { initialMessage } : {}
+  await router.push({ name: RouteNames.ChatPage, params: { chatId: id }, query })
 }
 </script>
 

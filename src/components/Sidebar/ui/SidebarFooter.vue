@@ -21,12 +21,13 @@ import PlusIcon from '@/assets/icons/PlusIcon.svg'
 import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
 import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
 import { useRouter } from 'vue-router'
+import { RouteNames } from '@/router'
 
 const router = useRouter()
 const { isCollapsed } = useSidebarState()
 
 const handleNewChat = () => {
-  router.push('/')
+  router.push({ name: RouteNames.HomePage })
 }
 </script>
 

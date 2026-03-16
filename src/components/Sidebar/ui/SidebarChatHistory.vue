@@ -9,7 +9,7 @@
         @click="closeSidebarOnMobile"
       >
         <router-link
-          :to="`/chat/${chat.id}`"
+          :to="{ name: RouteNames.ChatPage, params: { chatId: chat.id } }"
           :class="['chat-link', route.params.chatId === chat.id ? 'selected-chat' : '']"
         >
           <span class="d-2 regular chat-title">{{ chat.title }}</span>
@@ -24,6 +24,7 @@ import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
 import { useChatStore } from '@/stores/chatStore'
 import { useRoute } from 'vue-router'
 import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
+import { RouteNames } from '@/router'
 
 const { isCollapsed, close } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
@@ -75,8 +76,9 @@ const closeSidebarOnMobile = () => {
   background: transparent;
 }
 
-.chat-link:hover {
+.chat-link:hover:not(.selected-chat) {
   background: var(--neutral-300);
+  opacity: 0.9;
 }
 
 .chat-title {

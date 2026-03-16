@@ -35,6 +35,7 @@ import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
 import { useChatStore } from '@/stores/chatStore'
+import { RouteNames } from '@/router'
 
 const { toggle } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
@@ -53,7 +54,7 @@ const chatTitle = computed(() => {
 })
 
 const handleNewChat = () => {
-  router.push('/')
+  router.push({ name: RouteNames.HomePage })
 }
 </script>
 

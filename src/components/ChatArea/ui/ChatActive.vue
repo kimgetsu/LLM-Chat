@@ -27,6 +27,7 @@ import { useSendMessage } from '../model/useSendMessage'
 import TypingLoader from '@/components/shared/TypingLoader.vue'
 import { useChatStore } from '@/stores/chatStore'
 import { useRoute, useRouter } from 'vue-router'
+import { RouteNames } from '@/router'
 
 const route = useRoute()
 const router = useRouter()
@@ -57,7 +58,7 @@ const handleSend = async (text: string) => {
 
   if (!chatId) {
     chatId = chatStore.createChat()
-    router.push(`/chat/${chatId}`)
+    router.push({ name: RouteNames.ChatPage, params: { chatId: chatId } })
   }
 
   chatStore.addMessage(chatId, 'user', text)
@@ -71,15 +72,27 @@ const handleSend = async (text: string) => {
 
   chatStore.addMessage(chatId, 'assistant', assistantResponse)
 }
+
+watch(
+  () => route.query.initialMessage,
+  initial => {
+    if (initial && typeof initial === 'string') {
+      router.replace({ query: {} })
+      handleSend(initial)
+    }
+  },
+  { immediate: true }
+)
 </script>
 
 <style scoped>
 .messages {
   width: 100%;
-  max-width: 564px;
-  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
   overflow-y: auto;
-  padding-bottom: var(--expanded-height);
+  height: 100%;
 }
 
 .input-wrapper {
@@ -93,6 +106,8 @@ const handleSend = async (text: string) => {
 
 .message-item {
   margin-bottom: 20px;
+  max-width: 564px;
+  width: 100%;
 }
 
 .error-message {
