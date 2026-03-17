@@ -11,8 +11,8 @@
 </template>
 
 <script setup lang="ts">
-import { ChatHeader } from '@/components/ChatArea'
-import { Sidebar } from '@/components/Sidebar'
+import { ChatHeader } from '@/features/chat'
+import { Sidebar } from '@/features/sidebar'
 </script>
 
 <style scoped>

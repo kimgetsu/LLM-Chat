@@ -1,5 +1,5 @@
 import { ref } from 'vue'
-import { openRouterApi } from '../api/openRouter.api'
+import { openRouterApi } from '../../../shared/api/openRouterApi'
 
 interface ChatMessage {
   role: 'user' | 'assistant'

@@ -23,8 +23,8 @@
 </template>
 
 <script setup lang="ts">
-import { ButtonVariant, ButtonSize, ButtonType } from '@/components/shared/button.types'
-import UiButton from '@/components/shared/UiButton.vue'
+import { ButtonVariant, ButtonSize, ButtonType } from '@/shared/ui/button/button.types'
+import UiButton from '@/shared/ui/button/UiButton.vue'
 import SendIcon from '@/assets/icons/SendIcon.svg'
 import { ref } from 'vue'
 const message = ref('')

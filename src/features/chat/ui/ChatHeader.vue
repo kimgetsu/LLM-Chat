@@ -28,14 +28,14 @@
 <script setup lang="ts">
 import PlusIcon from '@/assets/icons/PlusIcon.svg'
 import SidebarIcon from '@/assets/icons/SidebarIcon.svg'
-import UiButton from '@/components/shared/UiButton.vue'
-import { useSidebarState } from '@/components/Sidebar'
-import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
-import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
+import UiButton from '@/shared/ui/button/UiButton.vue'
+import { useSidebarState } from '@/features/sidebar'
+import { ButtonVariant, ButtonSize } from '@/shared/ui/button/button.types'
+import { useAppBreakpoints } from '@/shared/composables/useAppBreakpoints'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'
-import { useChatStore } from '@/stores/chatStore'
-import { RouteNames } from '@/router'
+import { useChatStore } from '@/features/chat/model/chatStore'
+import { RouteNames } from '@/app/router'
 
 const { toggle } = useSidebarState()
 const { isMobile } = useAppBreakpoints()

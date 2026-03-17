@@ -24,10 +24,10 @@ import { computed, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { useSendMessage } from '../model/useSendMessage'
-import TypingLoader from '@/components/shared/TypingLoader.vue'
-import { useChatStore } from '@/stores/chatStore'
+import TypingLoader from '@/shared/ui/loader/TypingLoader.vue'
+import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute, useRouter } from 'vue-router'
-import { RouteNames } from '@/router'
+import { RouteNames } from '@/app/router'
 
 const route = useRoute()
 const router = useRouter()

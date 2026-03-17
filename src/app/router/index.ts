@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { useChatStore } from '@/stores/chatStore'
+import { useChatStore } from '@/features/chat/model/chatStore'
 
 export enum RouteNames {
   HomePage = 'home',
@@ -9,17 +9,17 @@ export enum RouteNames {
 const routes = [
   {
     path: '/',
-    component: () => import('@/views/ChatView.vue'),
+    component: () => import('@/pages/chat/ChatPage.vue'),
     children: [
       {
         path: '/',
         name: RouteNames.HomePage,
-        component: () => import('@/views/chat/HomeChat.vue'),
+        component: () => import('@/pages/chat/routes/HomeChat.vue'),
       },
       {
         path: 'chat/:chatId',
         name: RouteNames.ChatPage,
-        component: () => import('@/views/chat/Chat.vue'),
+        component: () => import('@/pages/chat/routes/Chat.vue'),
       },
     ],
   },

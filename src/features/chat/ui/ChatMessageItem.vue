@@ -18,7 +18,7 @@
 <script setup lang="ts">
 import Avatar from '@/assets/icons/Avatar.png'
 import AssistantAvatar from '@/assets/icons/AssistantAvatar.png'
-import { formatTime } from '@/utils/date'
+import { formatTime } from '@/shared/lib/date'
 import { computed } from 'vue'
 
 const mProps = defineProps<{

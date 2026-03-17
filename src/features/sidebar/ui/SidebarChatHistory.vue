@@ -20,11 +20,11 @@
 </template>
 
 <script setup lang="ts">
-import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
-import { useChatStore } from '@/stores/chatStore'
+import { useSidebarState } from '@/features/sidebar'
+import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute } from 'vue-router'
-import { useAppBreakpoints } from '@/composables/useAppBreakpoints'
-import { RouteNames } from '@/router'
+import { useAppBreakpoints } from '@/shared/composables/useAppBreakpoints'
+import { RouteNames } from '@/app/router'
 
 const { isCollapsed, close } = useSidebarState()
 const { isMobile } = useAppBreakpoints()

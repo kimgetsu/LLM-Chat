@@ -3,5 +3,5 @@
 </template>
 
 <script setup lang="ts">
-import { ChatWelcomeCard } from '@/components/ChatArea'
+import { ChatWelcomeCard } from '@/features/chat'
 </script>

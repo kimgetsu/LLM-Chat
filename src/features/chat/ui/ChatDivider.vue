@@ -5,7 +5,7 @@
 </template>
 
 <script setup lang="ts">
-import { formatDate, formatTime } from '@/utils/date'
+import { formatDate, formatTime } from '@/shared/lib/date'
 
 const props = defineProps<{ date: number }>()
 </script>

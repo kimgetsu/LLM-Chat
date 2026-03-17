@@ -16,12 +16,12 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '@/components/shared/UiButton.vue'
+import UiButton from '@/shared/ui/button/UiButton.vue'
 import PlusIcon from '@/assets/icons/PlusIcon.svg'
-import { useSidebarState } from '@/components/Sidebar/model/useSidebarState'
-import { ButtonVariant, ButtonSize } from '@/components/shared/button.types'
+import { useSidebarState } from '@/features/sidebar'
+import { ButtonVariant, ButtonSize } from '@/shared/ui/button/button.types'
 import { useRouter } from 'vue-router'
-import { RouteNames } from '@/router'
+import { RouteNames } from '@/app/router'
 
 const router = useRouter()
 const { isCollapsed } = useSidebarState()

@@ -14,8 +14,8 @@
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
 import { useRouter } from 'vue-router'
-import { useChatStore } from '@/stores/chatStore'
-import { RouteNames } from '@/router'
+import { useChatStore } from '@/features/chat/model/chatStore'
+import { RouteNames } from '@/app/router'
 
 const router = useRouter()
 const chatStore = useChatStore()
