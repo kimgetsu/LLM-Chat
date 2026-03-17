@@ -1,7 +1,7 @@
 <template>
   <header class="sidebar-header">
     <div class="header-content">
-      <img src="../../../assets/icons/Avatar.png" alt="Avatar" class="avatar" />
+      <img src="../../../shared//assets//icons/Avatar.png" alt="Avatar" class="avatar" />
       <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
     </div>
     <div class="header-actions" :class="{ collapsed: isCollapsed }">
@@ -21,11 +21,11 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '@/shared/ui/button/UiButton.vue'
-import SettingsIcon from '@/assets/icons/SettingsIcon.svg'
-import SidebarIcon from '@/assets/icons/SidebarIcon.svg'
+import { UiButton } from '@/shared/ui'
+import SettingsIcon from '@/shared/assets/icons/SettingsIcon.svg'
+import SidebarIcon from '@/shared/assets/icons/SidebarIcon.svg'
 import { useSidebarState } from '@/features/sidebar'
-import { ButtonVariant, ButtonSize } from '@/shared/ui/button/button.types'
+import { ButtonVariant, ButtonSize } from '@/shared/ui'
 
 const { isCollapsed, toggle } = useSidebarState()
 </script>

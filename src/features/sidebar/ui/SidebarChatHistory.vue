@@ -23,7 +23,7 @@
 import { useSidebarState } from '@/features/sidebar'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute } from 'vue-router'
-import { useAppBreakpoints } from '@/shared/composables/useAppBreakpoints'
+import { useAppBreakpoints } from '@/shared/composables'
 import { RouteNames } from '@/app/router'
 
 const { isCollapsed, close } = useSidebarState()

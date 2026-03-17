@@ -13,7 +13,7 @@ import SidebarHeader from './SidebarHeader.vue'
 import SidebarFooter from './SidebarFooter.vue'
 import SidebarChatHistory from './SidebarChatHistory.vue'
 import { useSidebarState } from '@/features/sidebar'
-import { useAppBreakpoints } from '@/shared/composables/useAppBreakpoints'
+import { useAppBreakpoints } from '@/shared/composables'
 import { watch } from 'vue'
 
 const { isCollapsed, close } = useSidebarState()

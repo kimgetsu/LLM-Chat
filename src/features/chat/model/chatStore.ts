@@ -28,10 +28,21 @@ export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const initialized = ref(false)
+  const pendingMessage = ref<string | null>(null)
 
   const sortedChats = computed(() => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
+
+  function setPendingMessage(message: string) {
+    pendingMessage.value = message
+  }
+
+  function consumePendingMessage(): string | null {
+    const msg = pendingMessage.value
+    pendingMessage.value = null
+    return msg
+  }
 
   function resetToDefault() {
     chats.value = []
@@ -153,5 +164,8 @@ export const useChatStore = defineStore('chat', () => {
     updateChatTitle,
     addMessage,
     updateMessage,
+    pendingMessage,
+    setPendingMessage,
+    consumePendingMessage,
   }
 })

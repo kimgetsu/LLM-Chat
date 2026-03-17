@@ -24,7 +24,7 @@ import { computed, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { useSendMessage } from '../model/useSendMessage'
-import TypingLoader from '@/shared/ui/loader/TypingLoader.vue'
+import { TypingLoader } from '@/shared/ui'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute, useRouter } from 'vue-router'
 import { RouteNames } from '@/app/router'
@@ -74,11 +74,11 @@ const handleSend = async (text: string) => {
 }
 
 watch(
-  () => route.query.initialMessage,
-  initial => {
-    if (initial && typeof initial === 'string') {
-      router.replace({ query: {} })
-      handleSend(initial)
+  () => chatStore.pendingMessage,
+  msg => {
+    if (msg) {
+      handleSend(msg)
+      chatStore.consumePendingMessage()
     }
   },
   { immediate: true }
