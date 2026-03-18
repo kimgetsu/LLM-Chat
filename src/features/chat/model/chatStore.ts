@@ -161,27 +161,22 @@ export const useChatStore = defineStore('chat', () => {
     return message
   }
 
-  function updateMessage(chatId: string, messageId: string, updates: Partial<Message>) {
-    const messages = messagesByChatId.value[chatId]
-    if (!messages) return
-    const msg = messages.find(m => m.id === messageId)
-    if (!msg) return
-    Object.assign(msg, updates)
-    saveToStorage()
-  }
+  // function updateMessage(chatId: string, messageId: string, updates: Partial<Message>) {
+  //   const messages = messagesByChatId.value[chatId]
+  //   if (!messages) return
+  //   const msg = messages.find(m => m.id === messageId)
+  //   if (!msg) return
+  //   Object.assign(msg, updates)
+  //   saveToStorage()
+  // }
 
   return {
     chats,
     messagesByChatId,
     initialized,
     sortedChats,
-    resetToDefault,
-    saveToStorage,
     loadFromStorage,
     createChat,
-    updateChatTitle,
-    addMessage,
-    updateMessage,
     sendMessage,
     loadingByChatId,
     errorByChatId,
