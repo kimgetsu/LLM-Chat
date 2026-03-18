@@ -21,13 +21,13 @@ const router = useRouter()
 const chatStore = useChatStore()
 
 const createAndOpenChat = async (initialMessage?: string) => {
-  const id = chatStore.createChat()
+  const chatId = chatStore.createChat()
 
-  if (initialMessage) {
-    chatStore.setPendingMessage(initialMessage)
-  }
+  await router.push({ name: RouteNames.ChatPage, params: { chatId } })
 
-  await router.push({ name: RouteNames.ChatPage, params: { chatId: id } })
+  if (!initialMessage?.trim()) return
+
+  await chatStore.sendMessage(chatId, initialMessage)
 }
 </script>
 

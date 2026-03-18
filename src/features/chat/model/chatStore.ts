@@ -1,6 +1,7 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import { openRouterApi } from '@/shared/api/openRouterApi'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
 const CURRENT_VERSION = 1
@@ -28,20 +29,37 @@ export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const initialized = ref(false)
-  const pendingMessage = ref<string | null>(null)
+  const loadingByChatId = ref<Record<string, boolean>>({})
+  const errorByChatId = ref<Record<string, string | null>>({})
 
   const sortedChats = computed(() => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  function setPendingMessage(message: string) {
-    pendingMessage.value = message
-  }
+  async function sendMessage(chatId: string, text: string) {
+    if (!text.trim()) return
 
-  function consumePendingMessage(): string | null {
-    const msg = pendingMessage.value
-    pendingMessage.value = null
-    return msg
+    addMessage(chatId, 'user', text)
+
+    loadingByChatId.value[chatId] = true
+    errorByChatId.value[chatId] = null
+
+    try {
+      const messages = (messagesByChatId.value[chatId] ?? []).map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
+
+      const response = await openRouterApi.sendMessage(messages)
+
+      const assistantText = response.data.choices[0]?.message.content ?? ''
+
+      addMessage(chatId, 'assistant', assistantText)
+    } catch (err) {
+      errorByChatId.value[chatId] = 'Ошибка при обращении к OpenRouter'
+    } finally {
+      loadingByChatId.value[chatId] = false
+    }
   }
 
   function resetToDefault() {
@@ -164,8 +182,8 @@ export const useChatStore = defineStore('chat', () => {
     updateChatTitle,
     addMessage,
     updateMessage,
-    pendingMessage,
-    setPendingMessage,
-    consumePendingMessage,
+    sendMessage,
+    loadingByChatId,
+    errorByChatId,
   }
 })

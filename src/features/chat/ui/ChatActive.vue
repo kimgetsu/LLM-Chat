@@ -23,7 +23,6 @@ import ChatInput from './ChatInput.vue'
 import { computed, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
-import { useSendMessage } from '../model/useSendMessage'
 import { TypingLoader } from '@/shared/ui'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute, useRouter } from 'vue-router'
@@ -32,10 +31,16 @@ import { RouteNames } from '@/app/router'
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
-
-const { sendMessage, isLoading, error } = useSendMessage()
 const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
 const firstMessageDate = computed(() => currentMessages.value[0]?.createdAt)
+
+const isLoading = computed(() => {
+  return chatStore.loadingByChatId[currentChatId.value]
+})
+
+const error = computed(() => {
+  return chatStore.errorByChatId[currentChatId.value]
+})
 
 const currentChatId = computed(() => {
   return route.params.chatId as string
@@ -58,31 +63,11 @@ const handleSend = async (text: string) => {
 
   if (!chatId) {
     chatId = chatStore.createChat()
-    router.push({ name: RouteNames.ChatPage, params: { chatId: chatId } })
+    await router.push({ name: RouteNames.ChatPage, params: { chatId } })
   }
 
-  chatStore.addMessage(chatId, 'user', text)
-
-  const assistantResponse = await sendMessage(
-    currentMessages.value.map(m => ({
-      role: m.role,
-      content: m.content,
-    }))
-  )
-
-  chatStore.addMessage(chatId, 'assistant', assistantResponse)
+  await chatStore.sendMessage(chatId, text)
 }
-
-watch(
-  () => chatStore.pendingMessage,
-  msg => {
-    if (msg) {
-      handleSend(msg)
-      chatStore.consumePendingMessage()
-    }
-  },
-  { immediate: true }
-)
 </script>
 
 <style scoped>
