@@ -27,7 +27,7 @@ const routes = [
   {
     path: '/login',
     name: RouteNames.LoginPage,
-    component: () => import('@/pages/auth/LoginPage.vue'),
+    component: () => import('@/pages/auth'),
   },
 ]
 

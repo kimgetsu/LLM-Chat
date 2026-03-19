@@ -24,8 +24,8 @@ import { ButtonSize, ButtonType, ButtonVariant, UiButton } from '@/shared/ui'
 }
 
 .login-btn {
-  width: 443px;
-  height: 42px;
+  max-width: 443px;
+  width: 100%;
   margin: 25px;
 }
 </style>
