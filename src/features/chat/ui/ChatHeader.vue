@@ -28,9 +28,8 @@
 <script setup lang="ts">
 import PlusIcon from '@/shared/assets/icons/PlusIcon.svg'
 import SidebarIcon from '@/shared/assets/icons/SidebarIcon.svg'
-import { UiButton } from '@/shared/ui'
+import { UiButton, ButtonVariant, ButtonSize } from '@/shared/ui'
 import { useSidebarState } from '@/features/sidebar'
-import { ButtonVariant, ButtonSize } from '@/shared/ui'
 import { useAppBreakpoints } from '@/shared/composables'
 import { useRoute, useRouter } from 'vue-router'
 import { computed } from 'vue'

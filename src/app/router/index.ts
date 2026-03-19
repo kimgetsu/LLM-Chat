@@ -4,6 +4,7 @@ import { useChatStore } from '@/features/chat/model/chatStore'
 export enum RouteNames {
   HomePage = 'home',
   ChatPage = 'chat',
+  LoginPage = 'login',
 }
 
 const routes = [
@@ -22,6 +23,11 @@ const routes = [
         component: () => import('@/pages/chat/routes/Chat.vue'),
       },
     ],
+  },
+  {
+    path: '/login',
+    name: RouteNames.LoginPage,
+    component: () => import('@/pages/auth'),
   },
 ]
 

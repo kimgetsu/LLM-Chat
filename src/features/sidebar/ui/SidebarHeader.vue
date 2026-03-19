@@ -21,11 +21,10 @@
 </template>
 
 <script setup lang="ts">
-import { UiButton } from '@/shared/ui'
+import { UiButton, ButtonVariant, ButtonSize } from '@/shared/ui'
 import SettingsIcon from '@/shared/assets/icons/SettingsIcon.svg'
 import SidebarIcon from '@/shared/assets/icons/SidebarIcon.svg'
 import { useSidebarState } from '@/features/sidebar'
-import { ButtonVariant, ButtonSize } from '@/shared/ui'
 
 const { isCollapsed, toggle } = useSidebarState()
 </script>
