@@ -23,10 +23,10 @@
 </template>
 
 <script setup lang="ts">
-import { ButtonVariant, ButtonSize, ButtonType } from '@/shared/ui'
-import { UiButton } from '@/shared/ui'
+import { UiButton, ButtonVariant, ButtonSize, ButtonType } from '@/shared/ui'
 import SendIcon from '@/shared/assets/icons//SendIcon.svg'
 import { ref } from 'vue'
+
 const message = ref('')
 
 defineProps<{

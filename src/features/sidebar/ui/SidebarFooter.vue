@@ -16,10 +16,9 @@
 </template>
 
 <script setup lang="ts">
-import UiButton from '@/shared/ui/button/UiButton.vue'
+import { UiButton, ButtonVariant, ButtonSize } from '@/shared/ui'
 import PlusIcon from '@/shared/assets/icons/PlusIcon.svg'
 import { useSidebarState } from '@/features/sidebar'
-import { ButtonVariant, ButtonSize } from '@/shared/ui'
 import { useRouter } from 'vue-router'
 import { RouteNames } from '@/app/router'
 
