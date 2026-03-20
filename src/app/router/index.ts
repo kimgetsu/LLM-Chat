@@ -1,5 +1,6 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import { useChatStore } from '@/features/chat/model/chatStore'
+import { useAuthStore } from '@/shared/stores/authStore'
 
 export enum RouteNames {
   HomePage = 'home',
@@ -37,6 +38,20 @@ export const router = createRouter({
 })
 
 router.beforeEach(to => {
+  const authStore = useAuthStore()
+
+  if (!authStore.isAuthenticated) {
+    authStore.loadFromStorage()
+  }
+
+  if (!authStore.isAuthenticated && to.name !== RouteNames.LoginPage) {
+    return { name: RouteNames.LoginPage }
+  }
+
+  if (authStore.isAuthenticated && to.name === RouteNames.LoginPage) {
+    return { name: RouteNames.HomePage }
+  }
+
   const chatStore = useChatStore()
 
   if (!chatStore.initialized) {

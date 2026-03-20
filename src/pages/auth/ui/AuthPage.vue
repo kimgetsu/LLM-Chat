@@ -1,6 +1,7 @@
 <template>
   <div class="login-container glow-bg">
     <UiButton
+      @click="handleAuth"
       :variant="ButtonVariant.Primary"
       :size="ButtonSize.Default"
       :type="ButtonType.Button"
@@ -12,7 +13,12 @@
 </template>
 
 <script setup lang="ts">
+import { startOAuth } from '@/shared/services/authService'
 import { ButtonSize, ButtonType, ButtonVariant, UiButton } from '@/shared/ui'
+
+const handleAuth = () => {
+  startOAuth()
+}
 </script>
 
 <style scoped>
