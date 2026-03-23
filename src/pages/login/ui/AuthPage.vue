@@ -13,8 +13,10 @@
 </template>
 
 <script setup lang="ts">
-import { startOAuth } from '@/shared/services/authService'
+import { useLogin } from '../model/useLogin'
 import { ButtonSize, ButtonType, ButtonVariant, UiButton } from '@/shared/ui'
+
+const { startOAuth } = useLogin()
 
 const handleAuth = () => {
   startOAuth()

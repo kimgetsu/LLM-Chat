@@ -1,4 +1,4 @@
-import { createRouter, createWebHistory } from 'vue-router'
+import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useAuthStore } from '@/shared/stores/authStore'
 
@@ -6,6 +6,7 @@ export enum RouteNames {
   HomePage = 'home',
   ChatPage = 'chat',
   LoginPage = 'login',
+  AuthCallback = 'auth-callback',
 }
 
 const routes = [
@@ -22,13 +23,33 @@ const routes = [
         path: 'chat/:chatId',
         name: RouteNames.ChatPage,
         component: () => import('@/pages/chat/routes/Chat.vue'),
+        beforeEnter: (to: RouteLocationNormalized) => {
+          const chatStore = useChatStore()
+
+          const chatId = to.params.chatId as string
+
+          if (!chatId) {
+            return { name: RouteNames.HomePage }
+          }
+
+          const exists = chatStore.chats.some(c => c.id === chatId)
+
+          if (!exists) {
+            return { name: RouteNames.HomePage }
+          }
+        },
       },
     ],
   },
   {
     path: '/login',
     name: RouteNames.LoginPage,
-    component: () => import('@/pages/auth'),
+    component: () => import('@/pages/login'),
+  },
+  {
+    path: '/auth-callback',
+    name: RouteNames.AuthCallback,
+    component: () => import('@/pages/auth-callback'),
   },
 ]
 
@@ -40,8 +61,8 @@ export const router = createRouter({
 router.beforeEach(to => {
   const authStore = useAuthStore()
 
-  if (!authStore.isAuthenticated) {
-    authStore.loadFromStorage()
+  if (to.name === RouteNames.AuthCallback) {
+    return
   }
 
   if (!authStore.isAuthenticated && to.name !== RouteNames.LoginPage) {
@@ -50,25 +71,5 @@ router.beforeEach(to => {
 
   if (authStore.isAuthenticated && to.name === RouteNames.LoginPage) {
     return { name: RouteNames.HomePage }
-  }
-
-  const chatStore = useChatStore()
-
-  if (!chatStore.initialized) {
-    chatStore.loadFromStorage()
-  }
-
-  if (to.name === RouteNames.ChatPage) {
-    const chatId = to.params.chatId as string
-
-    if (!chatId) {
-      return { name: RouteNames.HomePage }
-    }
-
-    const exists = chatStore.chats.some(c => c.id === chatId)
-
-    if (!exists) {
-      return { name: RouteNames.HomePage }
-    }
   }
 })

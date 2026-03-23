@@ -1,32 +1,23 @@
-import { ref, computed } from 'vue'
+import { computed } from 'vue'
 import { defineStore } from 'pinia'
+import { useStorage } from '@vueuse/core'
 
 export const useAuthStore = defineStore('auth', () => {
-  const userKey = ref<string | null>(null)
+  const userKey = useStorage<string | null>('auth_user_key', null)
 
-  const isAuthenticated = computed(() => {
-    return !!userKey.value
-  })
+  const isAuthenticated = computed(() => !!userKey.value)
 
   function setUserKey(key: string) {
     userKey.value = key
-    localStorage.setItem('auth_user_key', key)
   }
 
   function logout() {
     userKey.value = null
-    localStorage.removeItem('auth_user_key')
-  }
-
-  function loadFromStorage() {
-    const key = localStorage.getItem('auth_user_key')
-    userKey.value = key
   }
 
   return {
     isAuthenticated,
     setUserKey,
     logout,
-    loadFromStorage,
   }
 })
