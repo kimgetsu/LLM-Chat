@@ -1,6 +1,7 @@
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { Attachment, AttachmentKind } from '@/shared/types/attachments'
+import { convertAttachmentToOpenRouterBlock } from '@/shared/lib/openRouterAttachmentAdapter'
 import {
   ALLOWED_MIME_TYPES_FLAT,
   MAX_FILE_SIZE,
@@ -13,6 +14,7 @@ export function useChatFiles() {
   function getAttachmentKind(mimeType: string): AttachmentKind {
     if (mimeType.startsWith('audio/')) return 'audio'
     if (mimeType.startsWith('video/')) return 'video'
+    if (mimeType.startsWith('image/')) return 'image'
     return 'file'
   }
 
@@ -124,5 +126,12 @@ export function useChatFiles() {
     }
   }
 
-  return { attachments, addFiles, removeAttachment, clearAttachments }
+  function getAttachmentsForApi() {
+    return attachments.value
+      .filter(a => a.status === 'ready' && a.source)
+      .map(a => convertAttachmentToOpenRouterBlock(a))
+      .filter(Boolean)
+  }
+
+  return { attachments, addFiles, removeAttachment, clearAttachments, getAttachmentsForApi }
 }

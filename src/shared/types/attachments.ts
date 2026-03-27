@@ -1,4 +1,4 @@
-export type AttachmentKind = 'audio' | 'video' | 'file'
+export type AttachmentKind = 'audio' | 'video' | 'file' | 'image'
 
 export type AttachmentStatus = 'pending' | 'converting' | 'ready' | 'error'
 
