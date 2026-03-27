@@ -72,4 +72,10 @@ router.beforeEach(to => {
   if (authStore.isAuthenticated && to.name === RouteNames.LoginPage) {
     return { name: RouteNames.HomePage }
   }
+
+  const chatStore = useChatStore()
+
+  if (!chatStore.initialized) {
+    chatStore.loadFromStorage()
+  }
 })

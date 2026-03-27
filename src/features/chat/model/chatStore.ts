@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
+import type { Attachment } from '@/shared/types/attachments'
+import { convertAttachmentToOpenRouterBlock } from '@/shared/lib/openRouterAttachmentAdapter'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
 const CURRENT_VERSION = 1
@@ -36,22 +38,42 @@ export const useChatStore = defineStore('chat', () => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  async function sendMessage(chatId: string, text: string) {
-    if (!text.trim()) return
+  async function sendMessage(chatId: string, text: string, attachments: Attachment[] = []) {
+    if (!text.trim() && attachments.length === 0) return
 
-    addMessage(chatId, 'user', text)
+    addMessage(chatId, 'user', text || '[Файлы]')
 
     loadingByChatId.value[chatId] = true
     errorByChatId.value[chatId] = null
 
     try {
-      const messages = (messagesByChatId.value[chatId] ?? []).map(m => ({
+      const historyMessages = (messagesByChatId.value[chatId] ?? []).slice(0, -1).map(m => ({
         role: m.role,
         content: m.content,
       }))
 
-      const response = await openRouterApi.sendMessage(messages)
+      let currentContent: string | any[]
 
+      if (attachments.length === 0) {
+        currentContent = text
+      } else {
+        const blocks: any[] = []
+
+        if (text.trim()) {
+          blocks.push({ type: 'text', text })
+        }
+
+        for (const attachment of attachments) {
+          const block = convertAttachmentToOpenRouterBlock(attachment)
+          if (block) blocks.push(block)
+        }
+
+        currentContent = blocks
+      }
+
+      const messages = [...historyMessages, { role: 'user' as const, content: currentContent }]
+
+      const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
       addMessage(chatId, 'assistant', assistantText)
