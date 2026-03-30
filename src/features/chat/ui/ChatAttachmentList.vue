@@ -1,6 +1,10 @@
 <template>
   <div v-if="props.attachments.length > 0" class="attach-list">
-    <div v-for="attachment in props.attachments" :key="attachment.id" class="attach-item">
+    <div
+      v-for="attachment in props.attachments"
+      :key="attachment.id"
+      :class="['attach-item', readonly ? 'readonly' : '']"
+    >
       <span class="item-info">
         <MusicIcon v-if="attachment.kind === 'audio'" />
         <VideoIcon v-else-if="attachment.kind === 'video'" />
@@ -11,10 +15,12 @@
       <span class="file-name">{{ attachment.fileName }}</span>
 
       <span class="item-action">
-        <span> <LoadingIcon v-if="attachment.status === 'converting'" /> </span>
-        <span> <ErrorIcon v-if="attachment.status === 'error'" /> </span>
         <span> {{ formatBytes(attachment.size, { decimals: 1 }) }} </span>
-        <button class="remove-btn" @click="emit('remove', attachment.id)"><CloseIcon /></button>
+        <span v-if="!readonly">
+          <span> <LoadingIcon v-if="attachment.status === 'converting'" /> </span>
+          <span> <ErrorIcon v-if="attachment.status === 'error'" /> </span>
+          <button class="remove-btn" @click="emit('remove', attachment.id)"><CloseIcon /></button>
+        </span>
       </span>
     </div>
   </div>
@@ -28,10 +34,10 @@ import MusicIcon from '@/shared/assets/icons/MusicIcon.svg'
 import VideoIcon from '@/shared/assets/icons/VideoIcon.svg'
 import FileIcon from '@/shared/assets/icons/FileIcon.svg'
 import ImageIcon from '@/shared/assets/icons/ImageIcon.svg'
-import type { Attachment } from '@/shared/types/attachments'
+import type { Attachment } from '@/entities/attachment/types'
 import { formatBytes } from '@/shared/lib/formatBytes'
 
-const props = defineProps<{ attachments: Attachment[] }>()
+const props = defineProps<{ attachments: Attachment[]; readonly: boolean }>()
 const emit = defineEmits<{ (e: 'remove', id: string): void }>()
 </script>
 
@@ -39,7 +45,7 @@ const emit = defineEmits<{ (e: 'remove', id: string): void }>()
 .attach-list {
   display: flex;
   flex-wrap: wrap;
-  gap: 8px;
+  gap: 3px;
   margin-bottom: 8px;
 }
 
@@ -51,8 +57,10 @@ const emit = defineEmits<{ (e: 'remove', id: string): void }>()
   align-items: center;
   gap: 12px;
   padding: 6px 12px;
-  background-color: #f3f4f6;
-  border-radius: 9999px;
+  border: 1px solid var(--neutral-400);
+  box-shadow: var(--sh-neutral-regular);
+  background-color: var(--secondary-200);
+  border-radius: 10px;
   font-size: 14px;
 }
 
@@ -62,6 +70,7 @@ const emit = defineEmits<{ (e: 'remove', id: string): void }>()
 }
 
 .remove-btn {
+  background: none;
   border: none;
   margin-left: 8px;
 }
@@ -77,5 +86,11 @@ const emit = defineEmits<{ (e: 'remove', id: string): void }>()
 
 .item-action {
   position: relative;
+}
+
+.readonly {
+  background: var(--neutral-100);
+  padding-top: 12px;
+  padding-bottom: 12px;
 }
 </style>

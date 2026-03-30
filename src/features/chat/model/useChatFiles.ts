@@ -1,29 +1,16 @@
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import type { Attachment, AttachmentKind } from '@/shared/types/attachments'
-import { convertAttachmentToOpenRouterBlock } from '@/shared/lib/openRouterAttachmentAdapter'
+import type { Attachment } from '@/entities/attachment/types'
+import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
+import { getAttachmentKind, getAudioFormat, convertToBase64 } from '@/entities/attachment/utils'
 import {
   ALLOWED_MIME_TYPES_FLAT,
   MAX_FILE_SIZE,
   MAX_FILE_COUNT,
-} from '@/shared/constants/fileTypes'
+} from '@/entities/attachment/constants'
 
 export function useChatFiles() {
   const attachments = ref<Attachment[]>([])
-
-  function getAttachmentKind(mimeType: string): AttachmentKind {
-    if (mimeType.startsWith('audio/')) return 'audio'
-    if (mimeType.startsWith('video/')) return 'video'
-    if (mimeType.startsWith('image/')) return 'image'
-    return 'file'
-  }
-
-  function getAudioFormat(mimeType: string): string | undefined {
-    if (mimeType === 'audio/mpeg') return 'mp3'
-    if (mimeType === 'audio/wav') return 'wav'
-    if (mimeType === 'audio/mp4' || mimeType === 'audio/m4a') return 'm4a'
-    return undefined
-  }
 
   function addFiles(files: File[]) {
     if (attachments.value.length + files.length > MAX_FILE_COUNT) {
@@ -79,24 +66,6 @@ export function useChatFiles() {
 
   function clearAttachments() {
     attachments.value = []
-  }
-
-  function convertToBase64(file: File): Promise<string> {
-    return new Promise((resolve, reject) => {
-      const reader = new FileReader()
-
-      reader.onload = () => {
-        if (typeof reader.result === 'string') {
-          resolve(reader.result)
-        } else {
-          reject(new Error('Failed to read file as string'))
-        }
-      }
-
-      reader.onerror = () => reject(new Error('File reading error'))
-
-      reader.readAsDataURL(file)
-    })
   }
 
   async function convertAttachment(attachment: Attachment) {

@@ -1,4 +1,4 @@
-import type { Attachment } from '../types/attachments'
+import type { Attachment } from '@/entities/attachment/types'
 
 export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any | null {
   if (attachment.status !== 'ready' || !attachment.source) return null
@@ -8,7 +8,7 @@ export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any 
 
   switch (kind) {
     case 'audio': {
-      const base64Data = dataUrl.split(',')[1] // Что тут происходит?
+      const base64Data = dataUrl.split(',')[1]
       const format = meta?.format || 'mp3'
       return { type: 'input_audio', inputAudio: { data: base64Data, format } }
     }

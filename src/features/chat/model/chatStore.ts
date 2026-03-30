@@ -2,8 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
-import type { Attachment } from '@/shared/types/attachments'
-import { convertAttachmentToOpenRouterBlock } from '@/shared/lib/openRouterAttachmentAdapter'
+import type { Attachment } from '@/entities/attachment/types'
+import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
 const CURRENT_VERSION = 1
@@ -23,6 +23,7 @@ interface Message {
   chatId: string
   role: Role
   content: string
+  attachments?: Attachment[]
   createdAt: number
   status: MessageStatus
 }
@@ -41,7 +42,7 @@ export const useChatStore = defineStore('chat', () => {
   async function sendMessage(chatId: string, text: string, attachments: Attachment[] = []) {
     if (!text.trim() && attachments.length === 0) return
 
-    addMessage(chatId, 'user', text || '[Файлы]')
+    addMessage(chatId, 'user', text, attachments)
 
     loadingByChatId.value[chatId] = true
     errorByChatId.value[chatId] = null
@@ -148,6 +149,7 @@ export const useChatStore = defineStore('chat', () => {
     chatId: string,
     role: Role,
     content: string,
+    attachments?: Attachment[],
     status: MessageStatus = 'sent'
   ): Message {
     const message: Message = {
@@ -155,6 +157,7 @@ export const useChatStore = defineStore('chat', () => {
       chatId,
       role,
       content,
+      attachments,
       createdAt: Date.now(),
       status,
     }

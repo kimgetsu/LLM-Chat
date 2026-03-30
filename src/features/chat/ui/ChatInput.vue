@@ -3,6 +3,7 @@
     <ChatAttachmentList
       v-if="props.variant === 'expanded'"
       :attachments="attachments"
+      :readonly="false"
       @remove="removeAttachment"
     />
 
@@ -50,7 +51,7 @@
         ref="fileInput"
         type="file"
         multiple
-        accept="audio/*,video/*,image/*application/pdf"
+        accept="audio/*,video/*,image/*,application/pdf"
         class="hidden"
         @change="handleFileSelect"
       />
@@ -66,7 +67,7 @@ import ChatAttachmentList from './ChatAttachmentList.vue'
 import ClipIcon from '@/shared/assets/icons/ClipIcon.svg'
 import LoadingIcon from '@/shared/assets/icons/LoadingIcon.svg'
 import { useChatFiles } from '../model/useChatFiles'
-import type { Attachment } from '@/shared/types/attachments'
+import type { Attachment } from '@/entities/attachment/types'
 import { useChatStore } from '../model/chatStore'
 
 const props = defineProps<{

@@ -7,6 +7,7 @@
         :role="message.role"
         :content="message.content"
         :createdAt="message.createdAt"
+        :attachments="message.attachments"
       />
     </div>
     <p v-if="isLoading" class="loading-message"><TypingLoader /></p>
@@ -33,7 +34,7 @@ import { TypingLoader } from '@/shared/ui'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute, useRouter } from 'vue-router'
 import { RouteNames } from '@/app/router'
-import type { Attachment } from '@/shared/types/attachments'
+import type { Attachment } from '@/entities/attachment/types'
 
 const route = useRoute()
 const router = useRouter()
