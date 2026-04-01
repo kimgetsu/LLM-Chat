@@ -18,12 +18,16 @@ interface Chat {
   updatedAt: number
 }
 
-interface Message {
-  id: string
+interface BaseMessage {
   chatId: string
   role: Role
   content: string
   attachments?: Attachment[]
+  status?: MessageStatus
+}
+
+interface Message extends BaseMessage {
+  id: string
   createdAt: number
   status: MessageStatus
 }
@@ -40,9 +44,15 @@ export const useChatStore = defineStore('chat', () => {
   })
 
   async function sendMessage(chatId: string, text: string, attachments: Attachment[] = []) {
-    if (!text.trim() && attachments.length === 0) return
+    if (!text && attachments.length === 0) return
 
-    addMessage(chatId, 'user', text, attachments)
+    addMessage({
+      chatId,
+      role: 'user',
+      content: text,
+      attachments,
+      status: 'sent',
+    })
 
     loadingByChatId.value[chatId] = true
     errorByChatId.value[chatId] = null
@@ -77,7 +87,12 @@ export const useChatStore = defineStore('chat', () => {
       const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
-      addMessage(chatId, 'assistant', assistantText)
+      addMessage({
+        chatId,
+        role: 'assistant',
+        content: assistantText,
+        status: 'sent',
+      })
     } catch (err) {
       errorByChatId.value[chatId] = 'Ошибка при обращении к OpenRouter'
     } finally {
@@ -145,41 +160,36 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function addMessage(
-    chatId: string,
-    role: Role,
-    content: string,
-    attachments?: Attachment[],
-    status: MessageStatus = 'sent'
-  ): Message {
+  function addMessage(data: BaseMessage): Message {
     const message: Message = {
       id: uuidv4(),
-      chatId,
-      role,
-      content,
-      attachments,
       createdAt: Date.now(),
-      status,
+      status: data.status ?? 'sent',
+      ...data,
     }
 
-    if (!messagesByChatId.value[chatId]) {
-      messagesByChatId.value[chatId] = []
+    let messages = messagesByChatId.value[data.chatId]
+
+    if (!messages) {
+      messages = []
+      messagesByChatId.value[data.chatId] = messages
     }
 
-    messagesByChatId.value[chatId].push(message)
+    messages.push(message)
 
-    const chat = chats.value.find(c => c.id === chatId)
+    const chat = chats.value.find(c => c.id === data.chatId)
 
     if (chat) {
       chat.updatedAt = Date.now()
     }
 
-    if (role === 'user') {
-      const userMessagesCount = messagesByChatId.value[chatId].filter(m => m.role === 'user').length
+    if (data.role === 'user') {
+      const userMessagesCount = messages.filter(m => m.role === 'user').length
 
       if (userMessagesCount === 1) {
-        const shortTitle = content.length > 30 ? content.slice(0, 30) + '..' : content
-        updateChatTitle(chatId, shortTitle)
+        const shortTitle =
+          data.content.length > 30 ? data.content.slice(0, 30) + '..' : data.content
+        updateChatTitle(data.chatId, shortTitle)
       }
     }
     saveToStorage()

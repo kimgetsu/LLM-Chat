@@ -3,11 +3,24 @@ import { v4 as uuidv4 } from 'uuid'
 import type { Attachment } from '@/entities/attachment/types'
 import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
 import { getAttachmentKind, getAudioFormat, convertToBase64 } from '@/entities/attachment/utils'
-import {
-  ALLOWED_MIME_TYPES_FLAT,
-  MAX_FILE_SIZE,
-  MAX_FILE_COUNT,
-} from '@/entities/attachment/constants'
+import { formatBytes } from '@/shared/lib/formatBytes'
+
+const ALLOWED_MIME_TYPES = {
+  audio: ['audio/mp3', 'audio/wav', 'audio/m4a', 'audio/mpeg'],
+  video: ['video/mp4', 'video/webm'],
+  pdf: ['application/pdf'],
+  image: ['image/jpeg', 'image/png', 'image/gif', 'image/webp'],
+} as const
+
+const ALLOWED_MIME_TYPES_FLAT: string[] = [
+  ...ALLOWED_MIME_TYPES.audio,
+  ...ALLOWED_MIME_TYPES.video,
+  ...ALLOWED_MIME_TYPES.pdf,
+  ...ALLOWED_MIME_TYPES.image,
+]
+
+const MAX_FILE_SIZE = 20 * 1024 * 1024
+const MAX_FILE_COUNT = 5
 
 export function useChatFiles() {
   const attachments = ref<Attachment[]>([])
@@ -27,10 +40,9 @@ export function useChatFiles() {
       }
 
       if (file.size > MAX_FILE_SIZE) {
-        alert(`File ${file.name} is too large (max ${MAX_FILE_SIZE / 1024 / 1024}MB)`)
+        alert(`File ${file.name} is too large (max ${formatBytes(MAX_FILE_SIZE)})`)
         continue
       }
-
       const kind = getAttachmentKind(file.type)
 
       const attachment: Attachment = {

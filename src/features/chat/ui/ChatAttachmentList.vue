@@ -6,19 +6,16 @@
       :class="['attach-item', readonly ? 'readonly' : '']"
     >
       <span class="item-info">
-        <MusicIcon v-if="attachment.kind === 'audio'" />
-        <VideoIcon v-else-if="attachment.kind === 'video'" />
-        <ImageIcon v-else-if="attachment.kind === 'image'" />
-        <FileIcon v-else />
+        <component :is="iconMap[attachment.kind] || FileIcon" />
       </span>
 
       <span class="file-name">{{ attachment.fileName }}</span>
 
       <span class="item-action">
-        <span> {{ formatBytes(attachment.size, { decimals: 1 }) }} </span>
+        <span> {{ formatBytes(attachment.size) }} </span>
         <span v-if="!readonly">
-          <span> <LoadingIcon v-if="attachment.status === 'converting'" /> </span>
-          <span> <ErrorIcon v-if="attachment.status === 'error'" /> </span>
+          <span v-if="attachment.status === 'converting'"> <LoadingIcon /> </span>
+          <span v-if="attachment.status === 'error'"> <ErrorIcon /> </span>
           <button class="remove-btn" @click="emit('remove', attachment.id)"><CloseIcon /></button>
         </span>
       </span>
@@ -39,6 +36,13 @@ import { formatBytes } from '@/shared/lib/formatBytes'
 
 const props = defineProps<{ attachments: Attachment[]; readonly: boolean }>()
 const emit = defineEmits<{ (e: 'remove', id: string): void }>()
+
+const iconMap = {
+  audio: MusicIcon,
+  video: VideoIcon,
+  file: FileIcon,
+  image: ImageIcon,
+}
 </script>
 
 <style scoped>

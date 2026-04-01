@@ -8,7 +8,7 @@ export function formatBytes(
   bytes: number | null | undefined,
   opts: FormatBytesOptions = {}
 ): string {
-  const { base = 1000, decimals = 2, integer = false } = opts
+  const { base = 1000, decimals = 1, integer = false } = opts
 
   if (bytes === null || bytes === undefined || isNaN(bytes) || !isFinite(bytes)) {
     return '0 B'

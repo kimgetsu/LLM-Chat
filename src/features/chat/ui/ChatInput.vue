@@ -13,7 +13,7 @@
 
     <form :class="['input-section', props.variant]" @submit.prevent="handleSubmit">
       <textarea
-        v-model="message"
+        v-model.trim="message"
         placeholder="How can I help you?"
         @keydown="handleKeyDown"
       ></textarea>
