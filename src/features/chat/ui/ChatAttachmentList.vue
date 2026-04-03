@@ -33,13 +33,10 @@ import FileIcon from '@/shared/assets/icons/FileIcon.svg'
 import ImageIcon from '@/shared/assets/icons/ImageIcon.svg'
 import type { Attachment, AttachmentKind } from '@/entities/attachment/types'
 import { formatBytes } from '@/shared/lib/formatBytes'
+import { assertNever } from '@/entities/attachment/utils'
 
 const props = defineProps<{ attachments: Attachment[]; readonly: boolean }>()
 const emit = defineEmits<{ (e: 'remove', id: string): void }>()
-
-const assertNever = (kind: never): never => {
-  throw new Error(`Unexpected kind: ${kind}`)
-}
 
 const getAttachmentIcon = (kind: AttachmentKind) => {
   switch (kind) {

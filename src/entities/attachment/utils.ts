@@ -30,3 +30,7 @@ export function convertToBase64(file: File): Promise<string> {
     reader.readAsDataURL(file)
   })
 }
+
+export function assertNever(kind: never): never {
+  throw new Error(`Unexpected kind: ${kind}`)
+}

@@ -1,4 +1,5 @@
 import type { Attachment } from '@/entities/attachment/types'
+import { assertNever } from '@/entities/attachment/utils'
 
 export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any | null {
   if (attachment.status !== 'ready' || !attachment.source) return null
@@ -23,6 +24,6 @@ export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any 
       return { type: 'file_url', file: { url: dataUrl } }
 
     default:
-      return null
+      return assertNever(kind)
   }
 }
