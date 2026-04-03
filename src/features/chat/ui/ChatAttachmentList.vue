@@ -6,7 +6,7 @@
       :class="['attach-item', readonly ? 'readonly' : '']"
     >
       <span class="item-info">
-        <component :is="iconMap[attachment.kind] || FileIcon" />
+        <component :is="getAttachmentIcon(attachment.kind)" />
       </span>
 
       <span class="file-name">{{ attachment.fileName }}</span>
@@ -31,17 +31,29 @@ import MusicIcon from '@/shared/assets/icons/MusicIcon.svg'
 import VideoIcon from '@/shared/assets/icons/VideoIcon.svg'
 import FileIcon from '@/shared/assets/icons/FileIcon.svg'
 import ImageIcon from '@/shared/assets/icons/ImageIcon.svg'
-import type { Attachment } from '@/entities/attachment/types'
+import type { Attachment, AttachmentKind } from '@/entities/attachment/types'
 import { formatBytes } from '@/shared/lib/formatBytes'
 
 const props = defineProps<{ attachments: Attachment[]; readonly: boolean }>()
 const emit = defineEmits<{ (e: 'remove', id: string): void }>()
 
-const iconMap = {
-  audio: MusicIcon,
-  video: VideoIcon,
-  file: FileIcon,
-  image: ImageIcon,
+const assertNever = (kind: never): never => {
+  throw new Error(`Unexpected kind: ${kind}`)
+}
+
+const getAttachmentIcon = (kind: AttachmentKind) => {
+  switch (kind) {
+    case 'audio':
+      return MusicIcon
+    case 'video':
+      return VideoIcon
+    case 'image':
+      return ImageIcon
+    case 'file':
+      return FileIcon
+    default:
+      return assertNever(kind)
+  }
 }
 </script>
 

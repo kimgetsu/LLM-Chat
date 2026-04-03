@@ -1,7 +1,6 @@
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { Attachment } from '@/entities/attachment/types'
-import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
 import { getAttachmentKind, getAudioFormat, convertToBase64 } from '@/entities/attachment/utils'
 import { formatBytes } from '@/shared/lib/formatBytes'
 
@@ -107,12 +106,5 @@ export function useChatFiles() {
     }
   }
 
-  function getAttachmentsForApi() {
-    return attachments.value
-      .filter(a => a.status === 'ready' && a.source)
-      .map(a => convertAttachmentToOpenRouterBlock(a))
-      .filter(Boolean)
-  }
-
-  return { attachments, addFiles, removeAttachment, clearAttachments, getAttachmentsForApi }
+  return { attachments, addFiles, removeAttachment, clearAttachments }
 }

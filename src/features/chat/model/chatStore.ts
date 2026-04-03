@@ -162,10 +162,10 @@ export const useChatStore = defineStore('chat', () => {
 
   function addMessage(data: BaseMessage): Message {
     const message: Message = {
+      ...data,
       id: uuidv4(),
       createdAt: Date.now(),
       status: data.status ?? 'sent',
-      ...data,
     }
 
     let messages = messagesByChatId.value[data.chatId]

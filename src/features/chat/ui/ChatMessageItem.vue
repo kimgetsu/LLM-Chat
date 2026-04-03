@@ -13,7 +13,7 @@
       </div>
     </div>
   </div>
-  <ChatAttachmentList v-if="attachments?.length" :attachments="attachments" :readonly="true" />
+  <ChatAttachmentList v-if="attachments?.length" :attachments="attachments" readonly />
 </template>
 
 <script setup lang="ts">
