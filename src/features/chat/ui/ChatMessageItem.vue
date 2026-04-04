@@ -13,6 +13,7 @@
       </div>
     </div>
   </div>
+  <ChatAttachmentList v-if="attachments?.length" :attachments="attachments" readonly />
 </template>
 
 <script setup lang="ts">
@@ -20,11 +21,14 @@ import Avatar from '@/shared/assets/icons/Avatar.png'
 import AssistantAvatar from '@/shared/assets/icons/AssistantAvatar.png'
 import { formatTime } from '@/shared/lib'
 import { computed } from 'vue'
+import ChatAttachmentList from './ChatAttachmentList.vue'
+import type { Attachment } from '@/entities/attachment/types'
 
 const mProps = defineProps<{
   role: 'user' | 'assistant'
   content: string
   createdAt: number
+  attachments?: Attachment[]
 }>()
 
 const timeStr = computed(() => formatTime(mProps.createdAt))

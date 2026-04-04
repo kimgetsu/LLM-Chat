@@ -2,6 +2,8 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
+import type { Attachment } from '@/entities/attachment/types'
+import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
 const CURRENT_VERSION = 1
@@ -16,11 +18,16 @@ interface Chat {
   updatedAt: number
 }
 
-interface Message {
-  id: string
+interface BaseMessage {
   chatId: string
   role: Role
   content: string
+  attachments?: Attachment[]
+  status?: MessageStatus
+}
+
+interface Message extends BaseMessage {
+  id: string
   createdAt: number
   status: MessageStatus
 }
@@ -36,25 +43,56 @@ export const useChatStore = defineStore('chat', () => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  async function sendMessage(chatId: string, text: string) {
-    if (!text.trim()) return
+  async function sendMessage(chatId: string, text: string, attachments: Attachment[] = []) {
+    if (!text && attachments.length === 0) return
 
-    addMessage(chatId, 'user', text)
+    addMessage({
+      chatId,
+      role: 'user',
+      content: text,
+      attachments,
+      status: 'sent',
+    })
 
     loadingByChatId.value[chatId] = true
     errorByChatId.value[chatId] = null
 
     try {
-      const messages = (messagesByChatId.value[chatId] ?? []).map(m => ({
+      const historyMessages = (messagesByChatId.value[chatId] ?? []).slice(0, -1).map(m => ({
         role: m.role,
         content: m.content,
       }))
 
-      const response = await openRouterApi.sendMessage(messages)
+      let currentContent: string | any[]
 
+      if (attachments.length === 0) {
+        currentContent = text
+      } else {
+        const blocks: any[] = []
+
+        if (text.trim()) {
+          blocks.push({ type: 'text', text })
+        }
+
+        for (const attachment of attachments) {
+          const block = convertAttachmentToOpenRouterBlock(attachment)
+          if (block) blocks.push(block)
+        }
+
+        currentContent = blocks
+      }
+
+      const messages = [...historyMessages, { role: 'user' as const, content: currentContent }]
+
+      const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
-      addMessage(chatId, 'assistant', assistantText)
+      addMessage({
+        chatId,
+        role: 'assistant',
+        content: assistantText,
+        status: 'sent',
+      })
     } catch (err) {
       errorByChatId.value[chatId] = 'Ошибка при обращении к OpenRouter'
     } finally {
@@ -122,39 +160,36 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function addMessage(
-    chatId: string,
-    role: Role,
-    content: string,
-    status: MessageStatus = 'sent'
-  ): Message {
+  function addMessage(data: BaseMessage): Message {
     const message: Message = {
+      ...data,
       id: uuidv4(),
-      chatId,
-      role,
-      content,
       createdAt: Date.now(),
-      status,
+      status: data.status ?? 'sent',
     }
 
-    if (!messagesByChatId.value[chatId]) {
-      messagesByChatId.value[chatId] = []
+    let messages = messagesByChatId.value[data.chatId]
+
+    if (!messages) {
+      messages = []
+      messagesByChatId.value[data.chatId] = messages
     }
 
-    messagesByChatId.value[chatId].push(message)
+    messages.push(message)
 
-    const chat = chats.value.find(c => c.id === chatId)
+    const chat = chats.value.find(c => c.id === data.chatId)
 
     if (chat) {
       chat.updatedAt = Date.now()
     }
 
-    if (role === 'user') {
-      const userMessagesCount = messagesByChatId.value[chatId].filter(m => m.role === 'user').length
+    if (data.role === 'user') {
+      const userMessagesCount = messages.filter(m => m.role === 'user').length
 
       if (userMessagesCount === 1) {
-        const shortTitle = content.length > 30 ? content.slice(0, 30) + '..' : content
-        updateChatTitle(chatId, shortTitle)
+        const shortTitle =
+          data.content.length > 30 ? data.content.slice(0, 30) + '..' : data.content
+        updateChatTitle(data.chatId, shortTitle)
       }
     }
     saveToStorage()

@@ -7,6 +7,7 @@
         :role="message.role"
         :content="message.content"
         :createdAt="message.createdAt"
+        :attachments="message.attachments"
       />
     </div>
     <p v-if="isLoading" class="loading-message"><TypingLoader /></p>
@@ -14,25 +15,34 @@
   </div>
 
   <div class="input-wrapper">
-    <ChatInput variant="expanded" @send="handleSend" :key="currentChatId" />
+    <ChatInput
+      ref="chatInputRef"
+      variant="expanded"
+      @send="handleSend"
+      :key="currentChatId"
+      :chatId="currentChatId"
+    />
   </div>
 </template>
 
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
-import { computed, useTemplateRef, watch } from 'vue'
+import { computed, ref, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { TypingLoader } from '@/shared/ui'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute, useRouter } from 'vue-router'
 import { RouteNames } from '@/app/router'
+import type { Attachment } from '@/entities/attachment/types'
 
 const route = useRoute()
 const router = useRouter()
 const chatStore = useChatStore()
 const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
 const firstMessageDate = computed(() => currentMessages.value[0]?.createdAt)
+
+const chatInputRef = ref()
 
 const isLoading = computed(() => {
   return chatStore.loadingByChatId[currentChatId.value]
@@ -58,7 +68,7 @@ const scrollToNewMessage = () => {
 
 watch(() => currentMessages.value.length, scrollToNewMessage, { flush: 'post' })
 
-const handleSend = async (text: string) => {
+const handleSend = async (text: string, attachments: Attachment[]) => {
   let chatId = currentChatId.value
 
   if (!chatId) {
@@ -66,7 +76,11 @@ const handleSend = async (text: string) => {
     await router.push({ name: RouteNames.ChatPage, params: { chatId } })
   }
 
-  await chatStore.sendMessage(chatId, text)
+  await chatStore.sendMessage(chatId, text, attachments)
+
+  if (!chatStore.errorByChatId[chatId]) {
+    chatInputRef.value?.clearAttachments()
+  }
 }
 </script>
 
