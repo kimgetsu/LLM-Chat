@@ -1,28 +1,60 @@
 <template>
   <div :class="['message-container', role]">
-    <img :src="role === 'user' ? Avatar : AssistantAvatar" class="avatar" />
-
-    <div class="message-element">
-      <div class="header">
-        <span class="d-2 medium" v-text="role === 'assistant' ? 'LanguageGUI' : 'Denis Kim'"></span>
-        <span class="time d-1 medium">{{ timeStr }}</span>
-      </div>
-
-      <div class="content d-1 regular">
-        {{ content }}
+    <div class="message-header">
+      <img :src="role === 'user' ? Avatar : AssistantAvatar" class="avatar" />
+      <div class="message-element">
+        <div class="header">
+          <span
+            class="d-2 medium"
+            v-text="role === 'assistant' ? 'LanguageGUI' : 'Denis Kim'"
+          ></span>
+          <span class="time d-1 medium">{{ timeStr }}</span>
+        </div>
+        <div class="content d-1 regular">
+          {{ content }}
+        </div>
       </div>
     </div>
+
+    <ChatAttachmentList
+      v-if="attachments?.length"
+      :attachments="attachments"
+      readonly
+      class="attachment"
+    />
+
+    <div class="message-actions" v-if="role === 'assistant'">
+      <UiButton
+        :variant="ButtonVariant.Tertiary"
+        :size="ButtonSize.Small"
+        :onlyIcon="true"
+        class="ui-btn"
+        @click="copyingContent(content)"
+        :title="isCopied ? 'Successfully copied!' : 'Click to copy'"
+        ><template #left> <component :is="currentIcon" /> </template
+      ></UiButton>
+      <UiButton
+        :variant="ButtonVariant.Tertiary"
+        :size="ButtonSize.Small"
+        :onlyIcon="true"
+        class="ui-btn"
+        ><template #left> <RetryIcon /> </template
+      ></UiButton>
+    </div>
   </div>
-  <ChatAttachmentList v-if="attachments?.length" :attachments="attachments" readonly />
 </template>
 
 <script setup lang="ts">
 import Avatar from '@/shared/assets/icons/Avatar.png'
 import AssistantAvatar from '@/shared/assets/icons/AssistantAvatar.png'
 import { formatTime } from '@/shared/lib'
-import { computed } from 'vue'
+import { computed, ref } from 'vue'
 import ChatAttachmentList from './ChatAttachmentList.vue'
 import type { Attachment } from '@/entities/attachment/types'
+import { UiButton, ButtonSize, ButtonVariant } from '@/shared/ui'
+import RetryIcon from '@/shared/assets/icons/RetryIcon.svg'
+import CopyIcon from '@/shared/assets/icons/CopyIcon.svg'
+import SuccesIcon from '@/shared/assets/icons/SuccesIcon.svg'
 
 const mProps = defineProps<{
   role: 'user' | 'assistant'
@@ -32,6 +64,25 @@ const mProps = defineProps<{
 }>()
 
 const timeStr = computed(() => formatTime(mProps.createdAt))
+const currentIcon = computed(() => (isCopied.value ? SuccesIcon : CopyIcon))
+const isCopied = ref(false)
+
+const copyingContent = async (content: string): Promise<void> => {
+  if (!navigator.clipboard) {
+    console.error('Clipboard API not supported')
+    return
+  }
+
+  try {
+    await navigator.clipboard.writeText(content)
+    isCopied.value = true
+    setTimeout(() => {
+      isCopied.value = false
+    }, 2000)
+  } catch (e) {
+    console.error('Failed to copy: ', e)
+  }
+}
 </script>
 
 <style scoped>
@@ -41,7 +92,25 @@ const timeStr = computed(() => formatTime(mProps.createdAt))
   width: 100%;
   padding: 24px;
   display: flex;
+  flex-direction: column;
   margin-bottom: 20px;
+}
+
+.message-header {
+  display: flex;
+  flex-direction: row;
+}
+
+.message-actions {
+  margin-top: 5px;
+}
+
+.attachment {
+  margin-top: 15px;
+}
+
+.ui-btn {
+  background: none;
 }
 
 .user {
