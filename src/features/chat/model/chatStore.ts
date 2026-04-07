@@ -24,6 +24,7 @@ interface BaseMessage {
   content: string
   attachments?: Attachment[]
   status?: MessageStatus
+  requestId?: string
 }
 
 interface Message extends BaseMessage {
@@ -32,36 +33,69 @@ interface Message extends BaseMessage {
   status: MessageStatus
 }
 
+type Request = {
+  id: string
+  chatId: string
+  content: string
+  attachments?: Attachment[]
+}
+
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const initialized = ref(false)
   const loadingByChatId = ref<Record<string, boolean>>({})
   const errorByChatId = ref<Record<string, string | null>>({})
+  const requestsById = ref<Record<string, Request>>({})
 
   const sortedChats = computed(() => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  async function sendMessage(chatId: string, text: string, attachments: Attachment[] = []) {
+  async function sendMessage(
+    chatId: string,
+    text: string,
+    attachments: Attachment[] = [],
+    options?: { isRetry?: boolean; requestId?: string }
+  ) {
     if (!text && attachments.length === 0) return
 
-    addMessage({
-      chatId,
-      role: 'user',
-      content: text,
-      attachments,
-      status: 'sent',
-    })
+    const requestId = options?.requestId ?? uuidv4()
+
+    if (!options?.isRetry) {
+      requestsById.value[requestId] = {
+        id: requestId,
+        chatId,
+        content: text,
+        attachments,
+      }
+    }
+
+    if (!options?.isRetry) {
+      addMessage({
+        chatId,
+        role: 'user',
+        content: text,
+        attachments,
+        status: 'sent',
+        requestId,
+      })
+    }
 
     loadingByChatId.value[chatId] = true
     errorByChatId.value[chatId] = null
 
     try {
-      const historyMessages = (messagesByChatId.value[chatId] ?? []).slice(0, -1).map(m => ({
-        role: m.role,
-        content: m.content,
-      }))
+      const allMessages = messagesByChatId.value[chatId] ?? []
+      const historyMessages = options?.isRetry
+        ? allMessages.map(m => ({
+            role: m.role,
+            content: m.content,
+          }))
+        : allMessages.slice(0, -1).map(m => ({
+            role: m.role,
+            content: m.content,
+          }))
 
       let currentContent: string | any[]
 
@@ -92,6 +126,7 @@ export const useChatStore = defineStore('chat', () => {
         role: 'assistant',
         content: assistantText,
         status: 'sent',
+        requestId,
       })
     } catch (err) {
       errorByChatId.value[chatId] = 'Ошибка при обращении к OpenRouter'
@@ -196,14 +231,22 @@ export const useChatStore = defineStore('chat', () => {
     return message
   }
 
-  // function updateMessage(chatId: string, messageId: string, updates: Partial<Message>) {
-  //   const messages = messagesByChatId.value[chatId]
-  //   if (!messages) return
-  //   const msg = messages.find(m => m.id === messageId)
-  //   if (!msg) return
-  //   Object.assign(msg, updates)
-  //   saveToStorage()
-  // }
+  function retryMessage(message: Message) {
+    const requestId = message.requestId
+    if (!requestId) return
+
+    const request = requestsById.value[requestId]
+    if (!request) return
+
+    const messages = messagesByChatId.value[message.chatId]
+
+    if (!messages) return
+    messagesByChatId.value[message.chatId] = messages.filter(m => m.id !== message.id)
+
+    saveToStorage()
+
+    sendMessage(request.chatId, request.content, request.attachments, { isRetry: true, requestId })
+  }
 
   return {
     chats,
@@ -215,5 +258,6 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage,
     loadingByChatId,
     errorByChatId,
+    retryMessage,
   }
 })

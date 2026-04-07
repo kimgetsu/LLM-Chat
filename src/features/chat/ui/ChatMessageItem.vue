@@ -38,6 +38,7 @@
         :size="ButtonSize.Small"
         :onlyIcon="true"
         class="ui-btn"
+        @click="retry"
         ><template #left> <RetryIcon /> </template
       ></UiButton>
     </div>
@@ -56,12 +57,21 @@ import RetryIcon from '@/shared/assets/icons/RetryIcon.svg'
 import CopyIcon from '@/shared/assets/icons/CopyIcon.svg'
 import SuccesIcon from '@/shared/assets/icons/SuccesIcon.svg'
 
+const emit = defineEmits<{
+  retry: [messageId: string]
+}>()
+
 const mProps = defineProps<{
   role: 'user' | 'assistant'
   content: string
   createdAt: number
   attachments?: Attachment[]
+  id: string
 }>()
+
+const retry = () => {
+  emit('retry', mProps.id)
+}
 
 const timeStr = computed(() => formatTime(mProps.createdAt))
 const currentIcon = computed(() => (isCopied.value ? SuccesIcon : CopyIcon))
