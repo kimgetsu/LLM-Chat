@@ -23,3 +23,14 @@ export interface Attachment {
   source?: AttachmentSource
   meta?: AttachmentMeta
 }
+
+export type StoredAttachment = {
+  id: string
+  kind: AttachmentKind
+  mimeType: string
+  fileName: string
+  size: number
+  status: AttachmentStatus
+  source?: AttachmentSource
+  meta?: AttachmentMeta
+}

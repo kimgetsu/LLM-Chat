@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
-import type { Attachment } from '@/entities/attachment/types'
+import type { Attachment, StoredAttachment } from '@/entities/attachment/types'
 import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
@@ -38,6 +38,10 @@ type Request = {
   chatId: string
   content: string
   attachments?: Attachment[]
+}
+
+type StoredMessage = Omit<Message, 'attachments'> & {
+  attachments?: StoredAttachment[]
 }
 
 export const useChatStore = defineStore('chat', () => {
@@ -87,15 +91,31 @@ export const useChatStore = defineStore('chat', () => {
 
     try {
       const allMessages = messagesByChatId.value[chatId] ?? []
-      const historyMessages = options?.isRetry
-        ? allMessages.map(m => ({
+
+      let historyMessages
+
+      if (!options?.isRetry) {
+        historyMessages = allMessages.slice(0, -1).map(m => ({
+          role: m.role,
+          content: m.content,
+        }))
+      } else {
+        const requestId = options.requestId
+
+        const index = allMessages.findIndex(m => m.requestId === requestId && m.role === 'user')
+
+        if (index === -1) {
+          historyMessages = allMessages.map(m => ({
             role: m.role,
             content: m.content,
           }))
-        : allMessages.slice(0, -1).map(m => ({
+        } else {
+          historyMessages = allMessages.slice(0, index).map(m => ({
             role: m.role,
             content: m.content,
           }))
+        }
+      }
 
       let currentContent: string | any[]
 
@@ -144,7 +164,8 @@ export const useChatStore = defineStore('chat', () => {
     const data = {
       version: CURRENT_VERSION,
       chats: chats.value,
-      messagesByChatId: messagesByChatId.value,
+      messagesByChatId: stripAttachments(messagesByChatId.value),
+      requestsById: requestsById.value,
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
@@ -159,7 +180,8 @@ export const useChatStore = defineStore('chat', () => {
       if (!isValid) return resetToDefault()
 
       chats.value = data.chats
-      messagesByChatId.value = data.messagesByChatId
+      messagesByChatId.value = data.messagesByChatId as Record<string, Message[]>
+      requestsById.value = data.requestsById ?? {}
     } catch (e) {
       console.error('Ошибка чтения localStorage', e)
       resetToDefault()
@@ -241,11 +263,37 @@ export const useChatStore = defineStore('chat', () => {
     const messages = messagesByChatId.value[message.chatId]
 
     if (!messages) return
-    messagesByChatId.value[message.chatId] = messages.filter(m => m.id !== message.id)
+    messagesByChatId.value[message.chatId] = messages.filter(m => m.requestId !== message.requestId)
 
     saveToStorage()
 
     sendMessage(request.chatId, request.content, request.attachments, { isRetry: true, requestId })
+  }
+
+  function stripAttachments(
+    messagesByChatId: Record<string, Message[]>
+  ): Record<string, StoredMessage[]> {
+    const result: Record<string, StoredMessage[]> = {}
+
+    for (const chatId in messagesByChatId) {
+      const messages = messagesByChatId[chatId]
+      if (!messages) continue
+      result[chatId] = messages.map(m => ({
+        ...m,
+        attachments: m.attachments?.map(a => ({
+          id: a.id,
+          kind: a.kind,
+          mimeType: a.mimeType,
+          fileName: a.fileName,
+          size: a.size,
+          status: a.status,
+          source: a.source?.type === 'url' ? a.source : undefined,
+          meta: a.meta,
+        })),
+      }))
+    }
+
+    return result
   }
 
   return {
