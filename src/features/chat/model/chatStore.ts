@@ -44,6 +44,10 @@ type StoredMessage = Omit<Message, 'attachments'> & {
   attachments?: StoredAttachment[]
 }
 
+type StoredRequest = Omit<Request, 'attachments'> & {
+  attachments?: StoredAttachment[]
+}
+
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
@@ -165,7 +169,7 @@ export const useChatStore = defineStore('chat', () => {
       version: CURRENT_VERSION,
       chats: chats.value,
       messagesByChatId: stripAttachments(messagesByChatId.value),
-      requestsById: requestsById.value,
+      requestsById: stripRequests(requestsById.value),
     }
     localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
   }
@@ -181,7 +185,7 @@ export const useChatStore = defineStore('chat', () => {
 
       chats.value = data.chats
       messagesByChatId.value = data.messagesByChatId as Record<string, Message[]>
-      requestsById.value = data.requestsById ?? {}
+      requestsById.value = (data.requestsById ?? {}) as Record<string, Request>
     } catch (e) {
       console.error('Ошибка чтения localStorage', e)
       resetToDefault()
@@ -270,27 +274,42 @@ export const useChatStore = defineStore('chat', () => {
     sendMessage(request.chatId, request.content, request.attachments, { isRetry: true, requestId })
   }
 
+  function toStoredAttachment(a: Attachment): StoredAttachment {
+    return {
+      id: a.id,
+      kind: a.kind,
+      mimeType: a.mimeType,
+      fileName: a.fileName,
+      size: a.size,
+      status: a.status,
+      source: a.source?.type === 'url' ? a.source : undefined,
+      meta: a.meta,
+    }
+  }
+
   function stripAttachments(
     messagesByChatId: Record<string, Message[]>
   ): Record<string, StoredMessage[]> {
     const result: Record<string, StoredMessage[]> = {}
 
-    for (const chatId in messagesByChatId) {
-      const messages = messagesByChatId[chatId]
-      if (!messages) continue
+    for (const [chatId, messages] of Object.entries(messagesByChatId)) {
       result[chatId] = messages.map(m => ({
         ...m,
-        attachments: m.attachments?.map(a => ({
-          id: a.id,
-          kind: a.kind,
-          mimeType: a.mimeType,
-          fileName: a.fileName,
-          size: a.size,
-          status: a.status,
-          source: a.source?.type === 'url' ? a.source : undefined,
-          meta: a.meta,
-        })),
+        attachments: m.attachments?.map(toStoredAttachment),
       }))
+    }
+
+    return result
+  }
+
+  function stripRequests(requestsById: Record<string, Request>): Record<string, StoredRequest> {
+    const result: Record<string, StoredRequest> = {}
+
+    for (const [requestId, request] of Object.entries(requestsById)) {
+      result[requestId] = {
+        ...request,
+        attachments: request.attachments?.map(toStoredAttachment),
+      }
     }
 
     return result
