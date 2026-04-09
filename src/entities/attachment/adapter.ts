@@ -1,4 +1,4 @@
-import type { Attachment } from '@/entities/attachment/types'
+import type { Attachment, StoredAttachment } from '@/entities/attachment/types'
 import { assertNever } from '@/entities/attachment/utils'
 
 export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any | null {
@@ -25,5 +25,18 @@ export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any 
 
     default:
       return assertNever(kind)
+  }
+}
+
+export function toStoredAttachment(a: Attachment): StoredAttachment {
+  return {
+    id: a.id,
+    kind: a.kind,
+    mimeType: a.mimeType,
+    fileName: a.fileName,
+    size: a.size,
+    status: a.status,
+    source: a.source?.type === 'url' ? a.source : undefined,
+    meta: a.meta,
   }
 }

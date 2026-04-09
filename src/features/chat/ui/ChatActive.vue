@@ -2,13 +2,15 @@
   <ChatDivider v-if="firstMessageDate" :date="firstMessageDate" />
 
   <div class="messages" ref="messagesContainer">
-    <div v-for="message in currentMessages" :key="message.id" class="message-item">
+    <div v-for="(message, index) in currentMessages" :key="message.id" class="message-item">
       <ChatMessageItem
         :role="message.role"
         :content="message.content"
         :createdAt="message.createdAt"
         :attachments="message.attachments"
+        :hasAttachments="message.hasAttachments"
         :id="message.id"
+        :canRetry="index > 0 ? !currentMessages[index - 1]?.hasAttachments : false"
         @retry="handleRetryMessage"
       />
     </div>

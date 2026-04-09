@@ -3,7 +3,10 @@ import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
 import type { Attachment, StoredAttachment } from '@/entities/attachment/types'
-import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
+import {
+  convertAttachmentToOpenRouterBlock,
+  toStoredAttachment,
+} from '@/entities/attachment/adapter'
 
 const STORAGE_KEY = 'llm_chat_app:v1'
 const CURRENT_VERSION = 1
@@ -31,6 +34,7 @@ interface Message extends BaseMessage {
   id: string
   createdAt: number
   status: MessageStatus
+  hasAttachments?: boolean
 }
 
 type Request = {
@@ -42,6 +46,7 @@ type Request = {
 
 type StoredMessage = Omit<Message, 'attachments'> & {
   attachments?: StoredAttachment[]
+  hasAttachments?: boolean
 }
 
 type StoredRequest = Omit<Request, 'attachments'> & {
@@ -227,6 +232,7 @@ export const useChatStore = defineStore('chat', () => {
       id: uuidv4(),
       createdAt: Date.now(),
       status: data.status ?? 'sent',
+      hasAttachments: (data.attachments?.length ?? 0) > 0,
     }
 
     let messages = messagesByChatId.value[data.chatId]
@@ -257,34 +263,49 @@ export const useChatStore = defineStore('chat', () => {
     return message
   }
 
+  function canRetryMessage(message: Message): boolean {
+    if (message.role === 'user') return false
+
+    const messages = messagesByChatId.value[message.chatId]
+    if (!messages) return false
+
+    const messageIndex = messages.findIndex(m => m.id === message.id)
+    if (messageIndex <= 0) return false // Нет предыдущего сообщения
+
+    const userMessage = messages[messageIndex - 1]
+    return !userMessage?.hasAttachments
+  }
+
   function retryMessage(message: Message) {
+    if (!canRetryMessage(message)) {
+      console.warn('Retry disabled: message had attachments')
+      return
+    }
+
+    const messages = messagesByChatId.value[message.chatId]
+    if (!messages) return
+
+    const messageIndex = messages.findIndex(m => m.id === message.id)
+    if (messageIndex === -1) return
+
+    const userMessage = messages[messageIndex - 1]
+
+    if (userMessage && userMessage.hasAttachments) {
+      console.warn('Retry disabled: message had attachments')
+      return
+    }
+
     const requestId = message.requestId
     if (!requestId) return
 
     const request = requestsById.value[requestId]
     if (!request) return
 
-    const messages = messagesByChatId.value[message.chatId]
-
-    if (!messages) return
     messagesByChatId.value[message.chatId] = messages.filter(m => m.requestId !== message.requestId)
 
     saveToStorage()
 
     sendMessage(request.chatId, request.content, request.attachments, { isRetry: true, requestId })
-  }
-
-  function toStoredAttachment(a: Attachment): StoredAttachment {
-    return {
-      id: a.id,
-      kind: a.kind,
-      mimeType: a.mimeType,
-      fileName: a.fileName,
-      size: a.size,
-      status: a.status,
-      source: a.source?.type === 'url' ? a.source : undefined,
-      meta: a.meta,
-    }
   }
 
   function stripAttachments(
@@ -326,5 +347,6 @@ export const useChatStore = defineStore('chat', () => {
     loadingByChatId,
     errorByChatId,
     retryMessage,
+    canRetryMessage,
   }
 })

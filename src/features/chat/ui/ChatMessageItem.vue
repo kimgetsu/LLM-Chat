@@ -38,7 +38,10 @@
         :size="ButtonSize.Small"
         :onlyIcon="true"
         class="ui-btn"
-        @click="retry"
+        :class="{ 'disabled-retry': !canRetry }"
+        @click="handleRetry"
+        :disabled="!canRetry"
+        :title="retryButtonTitle"
         ><template #left> <RetryIcon /> </template
       ></UiButton>
     </div>
@@ -66,16 +69,32 @@ const mProps = defineProps<{
   content: string
   createdAt: number
   attachments?: Attachment[]
+  hasAttachments?: boolean
   id: string
+  canRetry?: boolean
 }>()
-
-const retry = () => {
-  emit('retry', mProps.id)
-}
 
 const timeStr = computed(() => formatTime(mProps.createdAt))
 const currentIcon = computed(() => (isCopied.value ? SuccesIcon : CopyIcon))
 const isCopied = ref(false)
+const canRetry = computed(() => !mProps.hasAttachments)
+
+const canRetryComputed = computed(() => {
+  if (mProps.canRetry !== undefined) {
+    return mProps.canRetry
+  }
+  return mProps.role === 'assistant'
+})
+
+const retryButtonTitle = computed(() =>
+  !canRetryComputed.value ? 'Cannot retry messages with attachments' : 'Click to retry'
+)
+
+const handleRetry = () => {
+  if (canRetryComputed.value) {
+    emit('retry', mProps.id)
+  }
+}
 
 const copyingContent = async (content: string): Promise<void> => {
   if (!navigator.clipboard) {
@@ -165,5 +184,10 @@ const copyingContent = async (content: string): Promise<void> => {
   color: var(--neutral-600);
   margin-top: 8px;
   overflow-wrap: anywhere;
+}
+
+.disabled-retry {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 </style>
