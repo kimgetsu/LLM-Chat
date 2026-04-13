@@ -1,6 +1,5 @@
-import { createRouter, createWebHistory, type RouteLocationNormalized } from 'vue-router'
-import { useChatStore } from '@/features/chat/model/chatStore'
-import { useAuthStore } from '@/shared/stores/authStore'
+import { createRouter, createWebHistory } from 'vue-router'
+import { globalAuthGuard, validateChatRoute } from '@/app/router/guards'
 
 export enum RouteNames {
   HomePage = 'home',
@@ -13,6 +12,7 @@ const routes = [
   {
     path: '/',
     component: () => import('@/pages/chat/ChatPage.vue'),
+    meta: { requiresAuth: true },
     children: [
       {
         path: '/',
@@ -23,32 +23,20 @@ const routes = [
         path: 'chat/:chatId',
         name: RouteNames.ChatPage,
         component: () => import('@/pages/chat/routes/Chat.vue'),
-        beforeEnter: (to: RouteLocationNormalized) => {
-          const chatStore = useChatStore()
-
-          const chatId = to.params.chatId as string
-
-          if (!chatId) {
-            return { name: RouteNames.HomePage }
-          }
-
-          const exists = chatStore.chats.some(c => c.id === chatId)
-
-          if (!exists) {
-            return { name: RouteNames.HomePage }
-          }
-        },
+        beforeEnter: validateChatRoute,
       },
     ],
   },
   {
     path: '/login',
     name: RouteNames.LoginPage,
+    meta: { isAuthRoute: true },
     component: () => import('@/pages/login'),
   },
   {
     path: '/auth-callback',
     name: RouteNames.AuthCallback,
+    meta: { isAuthRoute: true },
     component: () => import('@/pages/auth-callback'),
   },
 ]
@@ -58,24 +46,4 @@ export const router = createRouter({
   routes,
 })
 
-router.beforeEach(to => {
-  const authStore = useAuthStore()
-
-  if (to.name === RouteNames.AuthCallback) {
-    return
-  }
-
-  if (!authStore.isAuthenticated && to.name !== RouteNames.LoginPage) {
-    return { name: RouteNames.LoginPage }
-  }
-
-  if (authStore.isAuthenticated && to.name === RouteNames.LoginPage) {
-    return { name: RouteNames.HomePage }
-  }
-
-  const chatStore = useChatStore()
-
-  if (!chatStore.initialized) {
-    chatStore.loadFromStorage()
-  }
-})
+router.beforeEach(globalAuthGuard)
