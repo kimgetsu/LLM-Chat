@@ -69,29 +69,21 @@ const mProps = defineProps<{
   content: string
   createdAt: number
   attachments?: Attachment[]
-  hasAttachments?: boolean
   id: string
-  canRetry?: boolean
+  canRetry: boolean
 }>()
 
 const timeStr = computed(() => formatTime(mProps.createdAt))
 const currentIcon = computed(() => (isCopied.value ? SuccesIcon : CopyIcon))
 const isCopied = ref(false)
-const canRetry = computed(() => !mProps.hasAttachments)
-
-const canRetryComputed = computed(() => {
-  if (mProps.canRetry !== undefined) {
-    return mProps.canRetry
-  }
-  return mProps.role === 'assistant'
-})
+const canRetry = mProps.canRetry
 
 const retryButtonTitle = computed(() =>
-  !canRetryComputed.value ? 'Cannot retry messages with attachments' : 'Click to retry'
+  !canRetry ? 'Cannot retry messages with attachments' : 'Click to retry'
 )
 
 const handleRetry = () => {
-  if (canRetryComputed.value) {
+  if (canRetry) {
     emit('retry', mProps.id)
   }
 }

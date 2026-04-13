@@ -2,7 +2,11 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
-import type { Attachment, StoredAttachment } from '@/entities/attachment/types'
+import type {
+  Attachment,
+  StoredAttachment,
+  OpenRouterContentBlock,
+} from '@/entities/attachment/types'
 import {
   convertAttachmentToOpenRouterBlock,
   toStoredAttachment,
@@ -34,7 +38,6 @@ interface Message extends BaseMessage {
   id: string
   createdAt: number
   status: MessageStatus
-  hasAttachments?: boolean
 }
 
 type Request = {
@@ -46,7 +49,6 @@ type Request = {
 
 type StoredMessage = Omit<Message, 'attachments'> & {
   attachments?: StoredAttachment[]
-  hasAttachments?: boolean
 }
 
 type StoredRequest = Omit<Request, 'attachments'> & {
@@ -65,6 +67,74 @@ export const useChatStore = defineStore('chat', () => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
+  function buildCurrentContent(attachments: Attachment[], text: string) {
+    if (attachments.length === 0) {
+      return text
+    } else {
+      const blocks: OpenRouterContentBlock[] = []
+
+      if (text.trim()) {
+        blocks.push({ type: 'text', text })
+      }
+
+      for (const attachment of attachments) {
+        const block = convertAttachmentToOpenRouterBlock(attachment)
+        if (block) blocks.push(block)
+      }
+
+      return blocks
+    }
+  }
+
+  function buildHistoryMessages(
+    allMessages: Message[],
+    options?: { isRetry?: boolean; requestId?: string }
+  ) {
+    if (!options?.isRetry) {
+      return allMessages.slice(0, -1).map(m => ({
+        role: m.role,
+        content: m.content,
+      }))
+    } else {
+      const requestId = options.requestId
+      const index = allMessages.findIndex(m => m.requestId === requestId && m.role === 'user')
+
+      if (index === -1) {
+        return allMessages.map(m => ({
+          role: m.role,
+          content: m.content,
+        }))
+      } else {
+        return allMessages.slice(0, index).map(m => ({
+          role: m.role,
+          content: m.content,
+        }))
+      }
+    }
+  }
+
+  function createRequest(
+    requestId: string,
+    chatId: string,
+    text: string,
+    attachments: Attachment[] = []
+  ) {
+    requestsById.value[requestId] = {
+      id: requestId,
+      chatId,
+      content: text,
+      attachments,
+    }
+  }
+
+  function setChatLoading(chatId: string, value: boolean): void {
+    loadingByChatId.value[chatId] = value
+  }
+
+  function setChatError(chatId: string, error: string | null): void {
+    errorByChatId.value[chatId] = error
+  }
+
   async function sendMessage(
     chatId: string,
     text: string,
@@ -76,12 +146,7 @@ export const useChatStore = defineStore('chat', () => {
     const requestId = options?.requestId ?? uuidv4()
 
     if (!options?.isRetry) {
-      requestsById.value[requestId] = {
-        id: requestId,
-        chatId,
-        content: text,
-        attachments,
-      }
+      createRequest(requestId, chatId, text, attachments)
     }
 
     if (!options?.isRetry) {
@@ -95,58 +160,17 @@ export const useChatStore = defineStore('chat', () => {
       })
     }
 
-    loadingByChatId.value[chatId] = true
-    errorByChatId.value[chatId] = null
+    maybeUpdateChatTitle(chatId, text)
+    setChatLoading(chatId, true)
+    setChatError(chatId, null)
 
     try {
       const allMessages = messagesByChatId.value[chatId] ?? []
-
-      let historyMessages
-
-      if (!options?.isRetry) {
-        historyMessages = allMessages.slice(0, -1).map(m => ({
-          role: m.role,
-          content: m.content,
-        }))
-      } else {
-        const requestId = options.requestId
-
-        const index = allMessages.findIndex(m => m.requestId === requestId && m.role === 'user')
-
-        if (index === -1) {
-          historyMessages = allMessages.map(m => ({
-            role: m.role,
-            content: m.content,
-          }))
-        } else {
-          historyMessages = allMessages.slice(0, index).map(m => ({
-            role: m.role,
-            content: m.content,
-          }))
-        }
-      }
-
-      let currentContent: string | any[]
-
-      if (attachments.length === 0) {
-        currentContent = text
-      } else {
-        const blocks: any[] = []
-
-        if (text.trim()) {
-          blocks.push({ type: 'text', text })
-        }
-
-        for (const attachment of attachments) {
-          const block = convertAttachmentToOpenRouterBlock(attachment)
-          if (block) blocks.push(block)
-        }
-
-        currentContent = blocks
-      }
-
-      const messages = [...historyMessages, { role: 'user' as const, content: currentContent }]
-
+      const historyMessages = buildHistoryMessages(allMessages, options)
+      const messages = [
+        ...historyMessages,
+        { role: 'user' as const, content: buildCurrentContent(attachments, text) },
+      ]
       const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
@@ -158,9 +182,10 @@ export const useChatStore = defineStore('chat', () => {
         requestId,
       })
     } catch (err) {
-      errorByChatId.value[chatId] = 'Ошибка при обращении к OpenRouter'
+      setChatError(chatId, 'Ошибка при обращении к OpenRouter')
     } finally {
-      loadingByChatId.value[chatId] = false
+      setChatLoading(chatId, false)
+      saveToStorage()
     }
   }
 
@@ -176,7 +201,29 @@ export const useChatStore = defineStore('chat', () => {
       messagesByChatId: stripAttachments(messagesByChatId.value),
       requestsById: stripRequests(requestsById.value),
     }
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    try {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
+    } catch (e) {
+      console.error('Error:', e)
+    }
+  }
+
+  function isValidStoredData(data: unknown): data is {
+    version: number
+    chats: Chat[]
+    messagesByChatId: Record<string, Message[]>
+    requestsById?: Record<string, Request>
+  } {
+    if (!data || typeof data !== 'object') return false
+
+    const value = data as Record<string, unknown>
+
+    return (
+      value.version === CURRENT_VERSION &&
+      Array.isArray(value.chats) &&
+      typeof value.messagesByChatId === 'object' &&
+      value.messagesByChatId !== null
+    )
   }
 
   function loadFromStorage() {
@@ -185,8 +232,10 @@ export const useChatStore = defineStore('chat', () => {
       if (!stored) return resetToDefault()
 
       const data = JSON.parse(stored)
-      const isValid = data.version === CURRENT_VERSION && data.chats && data.messagesByChatId
-      if (!isValid) return resetToDefault()
+
+      if (!isValidStoredData(data)) {
+        return resetToDefault()
+      }
 
       chats.value = data.chats
       messagesByChatId.value = data.messagesByChatId as Record<string, Message[]>
@@ -222,7 +271,17 @@ export const useChatStore = defineStore('chat', () => {
     if (chat) {
       chat.title = title
       chat.updatedAt = Date.now()
-      saveToStorage()
+    }
+  }
+
+  function maybeUpdateChatTitle(chatId: string, text: string) {
+    const messages = messagesByChatId.value[chatId] || []
+
+    const userMessagesCount = messages.filter(m => m.role === 'user').length - 1
+
+    if (userMessagesCount === 0) {
+      const shortTitle = text.length > 30 ? text.slice(0, 30) + '...' : text
+      updateChatTitle(chatId, shortTitle)
     }
   }
 
@@ -232,7 +291,6 @@ export const useChatStore = defineStore('chat', () => {
       id: uuidv4(),
       createdAt: Date.now(),
       status: data.status ?? 'sent',
-      hasAttachments: (data.attachments?.length ?? 0) > 0,
     }
 
     let messages = messagesByChatId.value[data.chatId]
@@ -249,63 +307,53 @@ export const useChatStore = defineStore('chat', () => {
     if (chat) {
       chat.updatedAt = Date.now()
     }
-
-    if (data.role === 'user') {
-      const userMessagesCount = messages.filter(m => m.role === 'user').length
-
-      if (userMessagesCount === 1) {
-        const shortTitle =
-          data.content.length > 30 ? data.content.slice(0, 30) + '..' : data.content
-        updateChatTitle(data.chatId, shortTitle)
-      }
-    }
-    saveToStorage()
     return message
   }
 
-  function canRetryMessage(message: Message): boolean {
-    if (message.role === 'user') return false
+  function getRetryRequest(message: Message): Request | null {
+    if (message.role !== 'assistant') return null
 
     const messages = messagesByChatId.value[message.chatId]
-    if (!messages) return false
+    if (!messages) return null
 
     const messageIndex = messages.findIndex(m => m.id === message.id)
-    if (messageIndex <= 0) return false // Нет предыдущего сообщения
+    if (messageIndex <= 0) return null
 
     const userMessage = messages[messageIndex - 1]
-    return !userMessage?.hasAttachments
+
+    if (userMessage?.attachments?.length) return null
+
+    const requestId = message.requestId
+    if (!requestId) return null
+
+    const request = requestsById.value[requestId]
+    if (!request) return null
+
+    return request
+  }
+
+  function canRetryMessage(message: Message): boolean {
+    return getRetryRequest(message) !== null
   }
 
   function retryMessage(message: Message) {
-    if (!canRetryMessage(message)) {
-      console.warn('Retry disabled: message had attachments')
+    const request = getRetryRequest(message)
+
+    if (!request) {
+      console.warn('Retry disabled: invalid request or message has attachments')
       return
     }
 
     const messages = messagesByChatId.value[message.chatId]
     if (!messages) return
 
-    const messageIndex = messages.findIndex(m => m.id === message.id)
-    if (messageIndex === -1) return
-
-    const userMessage = messages[messageIndex - 1]
-
-    if (userMessage && userMessage.hasAttachments) {
-      console.warn('Retry disabled: message had attachments')
-      return
-    }
-
-    const requestId = message.requestId
-    if (!requestId) return
-
-    const request = requestsById.value[requestId]
-    if (!request) return
-
     messagesByChatId.value[message.chatId] = messages.filter(m => m.requestId !== message.requestId)
 
     saveToStorage()
-
-    sendMessage(request.chatId, request.content, request.attachments, { isRetry: true, requestId })
+    sendMessage(request.chatId, request.content, request.attachments, {
+      isRetry: true,
+      requestId: message.requestId,
+    })
   }
 
   function stripAttachments(
