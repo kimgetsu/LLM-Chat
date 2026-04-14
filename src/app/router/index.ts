@@ -1,5 +1,5 @@
 import { createRouter, createWebHistory } from 'vue-router'
-import { globalAuthGuard, validateChatRoute } from '@/app/router/guards'
+import { validateChatRoute } from '@/app/router/guards'
 
 export enum RouteNames {
   HomePage = 'home',
@@ -45,5 +45,3 @@ export const router = createRouter({
   history: createWebHistory(),
   routes,
 })
-
-router.beforeEach(globalAuthGuard)

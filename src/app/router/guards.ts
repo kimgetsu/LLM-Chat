@@ -1,26 +1,29 @@
-import type { RouteLocationNormalized, RouteLocationNormalizedGeneric } from 'vue-router'
+import { useRouter, type RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/authStore'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { RouteNames } from '@/app/router'
 
-export function globalAuthGuard(to: RouteLocationNormalizedGeneric) {
+export function globalAuthGuard() {
   const authStore = useAuthStore()
+  const router = useRouter()
 
-  if (to.name === RouteNames.AuthCallback) return
+  router.beforeEach(to => {
+    if (to.name === RouteNames.AuthCallback) return
 
-  if (to.meta?.requiresAuth && !authStore.isAuthenticated) {
-    return { name: RouteNames.LoginPage }
-  }
+    if (to.meta?.requiresAuth && !authStore.isAuthenticated) {
+      return { name: RouteNames.LoginPage }
+    }
 
-  if (to.meta?.isAuthRoute && authStore.isAuthenticated) {
-    return { name: RouteNames.HomePage }
-  }
+    if (to.meta?.isAuthRoute && authStore.isAuthenticated) {
+      return { name: RouteNames.HomePage }
+    }
 
-  const chatStore = useChatStore()
+    const chatStore = useChatStore()
 
-  if (!chatStore.initialized) {
-    chatStore.loadFromStorage()
-  }
+    if (!chatStore.initialized) {
+      chatStore.loadFromStorage()
+    }
+  })
 }
 
 export function validateChatRoute(to: RouteLocationNormalized) {
