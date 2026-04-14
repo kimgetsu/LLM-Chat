@@ -2,58 +2,10 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import { openRouterApi } from '@/shared/api/openRouterApi'
-import type {
-  Attachment,
-  StoredAttachment,
-  OpenRouterContentBlock,
-} from '@/entities/attachment/types'
-import {
-  convertAttachmentToOpenRouterBlock,
-  toStoredAttachment,
-} from '@/entities/attachment/adapter'
-
-const STORAGE_KEY = 'llm_chat_app:v1'
-const CURRENT_VERSION = 1
-
-type Role = 'user' | 'assistant'
-type MessageStatus = 'sent' | 'pending' | 'error'
-
-interface Chat {
-  id: string
-  title: string
-  createdAt: number
-  updatedAt: number
-}
-
-interface BaseMessage {
-  chatId: string
-  role: Role
-  content: string
-  attachments?: Attachment[]
-  status?: MessageStatus
-  requestId?: string
-}
-
-interface Message extends BaseMessage {
-  id: string
-  createdAt: number
-  status: MessageStatus
-}
-
-type Request = {
-  id: string
-  chatId: string
-  content: string
-  attachments?: Attachment[]
-}
-
-type StoredMessage = Omit<Message, 'attachments'> & {
-  attachments?: StoredAttachment[]
-}
-
-type StoredRequest = Omit<Request, 'attachments'> & {
-  attachments?: StoredAttachment[]
-}
+import type { Attachment } from '@/entities/attachment/types'
+import type { Chat, Message, BaseMessage, Request } from './types'
+import { buildCurrentContent, buildHistoryMessages } from './helpers'
+import { saveToStorage, loadFromStorage } from './storage'
 
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
@@ -67,50 +19,22 @@ export const useChatStore = defineStore('chat', () => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  function buildCurrentContent(attachments: Attachment[], text: string) {
-    if (attachments.length === 0) {
-      return text
-    } else {
-      const blocks: OpenRouterContentBlock[] = []
-
-      if (text.trim()) {
-        blocks.push({ type: 'text', text })
-      }
-
-      for (const attachment of attachments) {
-        const block = convertAttachmentToOpenRouterBlock(attachment)
-        if (block) blocks.push(block)
-      }
-
-      return blocks
-    }
+  function resetToDefault() {
+    chats.value = []
+    messagesByChatId.value = {}
+    requestsById.value = {}
   }
 
-  function buildHistoryMessages(
-    allMessages: Message[],
-    options?: { isRetry?: boolean; requestId?: string }
-  ) {
-    if (!options?.isRetry) {
-      return allMessages.slice(0, -1).map(m => ({
-        role: m.role,
-        content: m.content,
-      }))
-    } else {
-      const requestId = options.requestId
-      const index = allMessages.findIndex(m => m.requestId === requestId && m.role === 'user')
+  function persistToStorage() {
+    saveToStorage(chats.value, messagesByChatId.value, requestsById.value)
+  }
 
-      if (index === -1) {
-        return allMessages.map(m => ({
-          role: m.role,
-          content: m.content,
-        }))
-      } else {
-        return allMessages.slice(0, index).map(m => ({
-          role: m.role,
-          content: m.content,
-        }))
-      }
-    }
+  function setChatLoading(chatId: string, value: boolean): void {
+    loadingByChatId.value[chatId] = value
+  }
+
+  function setChatError(chatId: string, error: string | null): void {
+    errorByChatId.value[chatId] = error
   }
 
   function createRequest(
@@ -127,12 +51,98 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function setChatLoading(chatId: string, value: boolean): void {
-    loadingByChatId.value[chatId] = value
+  function addMessage(data: BaseMessage): Message {
+    const message: Message = {
+      ...data,
+      id: uuidv4(),
+      createdAt: Date.now(),
+      status: data.status ?? 'sent',
+    }
+
+    let messages = messagesByChatId.value[data.chatId]
+    if (!messages) {
+      messages = []
+      messagesByChatId.value[data.chatId] = messages
+    }
+
+    messages.push(message)
+
+    const chat = chats.value.find(c => c.id === data.chatId)
+    if (chat) {
+      chat.updatedAt = Date.now()
+    }
+
+    return message
   }
 
-  function setChatError(chatId: string, error: string | null): void {
-    errorByChatId.value[chatId] = error
+  function updateChatTitle(chatId: string, title: string) {
+    const chat = chats.value.find(c => c.id === chatId)
+    if (chat) {
+      chat.title = title
+      chat.updatedAt = Date.now()
+    }
+  }
+
+  function maybeUpdateChatTitle(chatId: string, text: string) {
+    const messages = messagesByChatId.value[chatId] || []
+    const userMessagesCount = messages.filter(m => m.role === 'user').length - 1
+
+    if (userMessagesCount === 0) {
+      const shortTitle = text.length > 30 ? text.slice(0, 30) + '...' : text
+      updateChatTitle(chatId, shortTitle)
+    }
+  }
+
+  function getRetryRequest(message: Message): Request | null {
+    if (message.role !== 'assistant') return null
+
+    const messages = messagesByChatId.value[message.chatId]
+    if (!messages) return null
+
+    const messageIndex = messages.findIndex(m => m.id === message.id)
+    if (messageIndex <= 0) return null
+
+    const userMessage = messages[messageIndex - 1]
+    if (userMessage?.attachments?.length) return null
+
+    const requestId = message.requestId
+    if (!requestId) return null
+
+    const request = requestsById.value[requestId]
+    if (!request) return null
+
+    return request
+  }
+
+  function loadFromStorageHandler() {
+    const stored = loadFromStorage()
+
+    if (stored) {
+      chats.value = stored.chats
+      messagesByChatId.value = stored.messagesByChatId
+      requestsById.value = stored.requestsById
+    } else {
+      resetToDefault()
+    }
+
+    initialized.value = true
+  }
+
+  function createChat() {
+    const id = uuidv4()
+    const now = Date.now()
+
+    const newChat: Chat = {
+      id,
+      title: 'New Chat',
+      createdAt: now,
+      updatedAt: now,
+    }
+
+    chats.value.push(newChat)
+    messagesByChatId.value[id] = []
+    persistToStorage()
+    return id
   }
 
   async function sendMessage(
@@ -171,6 +181,7 @@ export const useChatStore = defineStore('chat', () => {
         ...historyMessages,
         { role: 'user' as const, content: buildCurrentContent(attachments, text) },
       ]
+
       const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
@@ -185,151 +196,8 @@ export const useChatStore = defineStore('chat', () => {
       setChatError(chatId, 'Ошибка при обращении к OpenRouter')
     } finally {
       setChatLoading(chatId, false)
-      saveToStorage()
+      persistToStorage()
     }
-  }
-
-  function resetToDefault() {
-    chats.value = []
-    messagesByChatId.value = {}
-  }
-
-  function saveToStorage() {
-    const data = {
-      version: CURRENT_VERSION,
-      chats: chats.value,
-      messagesByChatId: stripAttachments(messagesByChatId.value),
-      requestsById: stripRequests(requestsById.value),
-    }
-    try {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(data))
-    } catch (e) {
-      console.error('Error:', e)
-    }
-  }
-
-  function isValidStoredData(data: unknown): data is {
-    version: number
-    chats: Chat[]
-    messagesByChatId: Record<string, Message[]>
-    requestsById?: Record<string, Request>
-  } {
-    if (!data || typeof data !== 'object') return false
-
-    const value = data as Record<string, unknown>
-
-    return (
-      value.version === CURRENT_VERSION &&
-      Array.isArray(value.chats) &&
-      typeof value.messagesByChatId === 'object' &&
-      value.messagesByChatId !== null
-    )
-  }
-
-  function loadFromStorage() {
-    try {
-      const stored = localStorage.getItem(STORAGE_KEY)
-      if (!stored) return resetToDefault()
-
-      const data = JSON.parse(stored)
-
-      if (!isValidStoredData(data)) {
-        return resetToDefault()
-      }
-
-      chats.value = data.chats
-      messagesByChatId.value = data.messagesByChatId as Record<string, Message[]>
-      requestsById.value = (data.requestsById ?? {}) as Record<string, Request>
-    } catch (e) {
-      console.error('Ошибка чтения localStorage', e)
-      resetToDefault()
-    } finally {
-      initialized.value = true
-    }
-  }
-
-  function createChat() {
-    const id = uuidv4()
-    const now = Date.now()
-
-    const newChat = {
-      id,
-      title: 'New Chat',
-      createdAt: now,
-      updatedAt: now,
-    }
-
-    chats.value.push(newChat)
-    messagesByChatId.value[id] = []
-    saveToStorage()
-    return id
-  }
-
-  function updateChatTitle(chatId: string, title: string) {
-    const chat = chats.value.find(c => c.id === chatId)
-
-    if (chat) {
-      chat.title = title
-      chat.updatedAt = Date.now()
-    }
-  }
-
-  function maybeUpdateChatTitle(chatId: string, text: string) {
-    const messages = messagesByChatId.value[chatId] || []
-
-    const userMessagesCount = messages.filter(m => m.role === 'user').length - 1
-
-    if (userMessagesCount === 0) {
-      const shortTitle = text.length > 30 ? text.slice(0, 30) + '...' : text
-      updateChatTitle(chatId, shortTitle)
-    }
-  }
-
-  function addMessage(data: BaseMessage): Message {
-    const message: Message = {
-      ...data,
-      id: uuidv4(),
-      createdAt: Date.now(),
-      status: data.status ?? 'sent',
-    }
-
-    let messages = messagesByChatId.value[data.chatId]
-
-    if (!messages) {
-      messages = []
-      messagesByChatId.value[data.chatId] = messages
-    }
-
-    messages.push(message)
-
-    const chat = chats.value.find(c => c.id === data.chatId)
-
-    if (chat) {
-      chat.updatedAt = Date.now()
-    }
-    return message
-  }
-
-  function getRetryRequest(message: Message): Request | null {
-    if (message.role !== 'assistant') return null
-
-    const messages = messagesByChatId.value[message.chatId]
-    if (!messages) return null
-
-    const messageIndex = messages.findIndex(m => m.id === message.id)
-    if (messageIndex <= 0) return null
-
-    const userMessage = messages[messageIndex - 1]
-
-    if (userMessage?.attachments?.length) return null
-
-    const requestId = message.requestId
-    if (!requestId) return null
-
-    const request = requestsById.value[requestId]
-    if (!request) return null
-
-    return request
   }
 
   function canRetryMessage(message: Message): boolean {
@@ -349,51 +217,24 @@ export const useChatStore = defineStore('chat', () => {
 
     messagesByChatId.value[message.chatId] = messages.filter(m => m.requestId !== message.requestId)
 
-    saveToStorage()
+    persistToStorage()
+
     sendMessage(request.chatId, request.content, request.attachments, {
       isRetry: true,
       requestId: message.requestId,
     })
   }
 
-  function stripAttachments(
-    messagesByChatId: Record<string, Message[]>
-  ): Record<string, StoredMessage[]> {
-    const result: Record<string, StoredMessage[]> = {}
-
-    for (const [chatId, messages] of Object.entries(messagesByChatId)) {
-      result[chatId] = messages.map(m => ({
-        ...m,
-        attachments: m.attachments?.map(toStoredAttachment),
-      }))
-    }
-
-    return result
-  }
-
-  function stripRequests(requestsById: Record<string, Request>): Record<string, StoredRequest> {
-    const result: Record<string, StoredRequest> = {}
-
-    for (const [requestId, request] of Object.entries(requestsById)) {
-      result[requestId] = {
-        ...request,
-        attachments: request.attachments?.map(toStoredAttachment),
-      }
-    }
-
-    return result
-  }
-
   return {
     chats,
     messagesByChatId,
     initialized,
-    sortedChats,
-    loadFromStorage,
-    createChat,
-    sendMessage,
     loadingByChatId,
     errorByChatId,
+    sortedChats,
+    loadFromStorage: loadFromStorageHandler,
+    createChat,
+    sendMessage,
     retryMessage,
     canRetryMessage,
   }
