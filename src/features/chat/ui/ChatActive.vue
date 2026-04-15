@@ -8,6 +8,9 @@
         :content="message.content"
         :createdAt="message.createdAt"
         :attachments="message.attachments"
+        :id="message.id"
+        :canRetry="chatStore.canRetryMessage(message)"
+        @retry="handleRetryMessage"
       />
     </div>
     <p v-if="isLoading" class="loading-message"><TypingLoader /></p>
@@ -81,6 +84,12 @@ const handleSend = async (text: string, attachments: Attachment[]) => {
   if (!chatStore.errorByChatId[chatId]) {
     chatInputRef.value?.clearAttachments()
   }
+}
+
+const handleRetryMessage = (messageId: string) => {
+  const message = currentMessages.value.find(m => m.id === messageId)
+  if (!message) return
+  chatStore.retryMessage(message)
 }
 </script>
 

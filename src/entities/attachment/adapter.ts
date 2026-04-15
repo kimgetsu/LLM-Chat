@@ -1,7 +1,13 @@
-import type { Attachment } from '@/entities/attachment/types'
+import type {
+  Attachment,
+  StoredAttachment,
+  OpenRouterContentBlock,
+} from '@/entities/attachment/types'
 import { assertNever } from '@/entities/attachment/utils'
 
-export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any | null {
+export function convertAttachmentToOpenRouterBlock(
+  attachment: Attachment
+): OpenRouterContentBlock | null {
   if (attachment.status !== 'ready' || !attachment.source) return null
 
   const { kind, source, meta } = attachment
@@ -11,6 +17,7 @@ export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any 
     case 'audio': {
       const base64Data = dataUrl.split(',')[1]
       const format = meta?.format || 'mp3'
+      if (!base64Data) return null
       return { type: 'input_audio', inputAudio: { data: base64Data, format } }
     }
 
@@ -25,5 +32,18 @@ export function convertAttachmentToOpenRouterBlock(attachment: Attachment): any 
 
     default:
       return assertNever(kind)
+  }
+}
+
+export function toStoredAttachment(a: Attachment): StoredAttachment {
+  return {
+    id: a.id,
+    kind: a.kind,
+    mimeType: a.mimeType,
+    fileName: a.fileName,
+    size: a.size,
+    status: a.status,
+    source: a.source?.type === 'url' ? a.source : undefined,
+    meta: a.meta,
   }
 }
