@@ -215,7 +215,11 @@ export const useChatStore = defineStore('chat', () => {
     const messages = messagesByChatId.value[message.chatId]
     if (!messages) return
 
-    messagesByChatId.value[message.chatId] = messages.filter(m => m.requestId !== message.requestId)
+    const messageIndex = messages.findIndex(m => m.id === message.id)
+
+    if (messageIndex === -1) return
+
+    messagesByChatId.value[message.chatId] = messages.slice(0, messageIndex)
 
     persistToStorage()
 
