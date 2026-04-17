@@ -5,8 +5,13 @@
       <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
     </div>
     <div class="header-actions" :class="{ collapsed: isCollapsed }">
-      <UiButton :variant="ButtonVariant.Tertiary" :size="ButtonSize.Small" :onlyIcon="true">
-        <template #left> <SettingsIcon /> </template>
+      <UiButton
+        :variant="ButtonVariant.Tertiary"
+        :size="ButtonSize.Small"
+        :onlyIcon="true"
+        @click="handleLogout"
+      >
+        <template #left> <LogoutIcon /> </template>
       </UiButton>
       <UiButton
         @click="toggle"
@@ -22,11 +27,22 @@
 
 <script setup lang="ts">
 import { UiButton, ButtonVariant, ButtonSize } from '@/shared/ui'
-import SettingsIcon from '@/shared/assets/icons/SettingsIcon.svg'
+import LogoutIcon from '@/shared/assets/icons/LogoutIcon.svg'
 import SidebarIcon from '@/shared/assets/icons/SidebarIcon.svg'
 import { useSidebarState } from '@/features/sidebar'
+import { useAuthStore } from '@/shared/stores/authStore'
+import { RouteNames, router } from '@/app/router'
 
 const { isCollapsed, toggle } = useSidebarState()
+const authStore = useAuthStore()
+
+const handleLogout = async () => {
+  try {
+    await authStore.logout()
+  } finally {
+    router.push({ name: RouteNames.LoginPage })
+  }
+}
 </script>
 
 <style scoped>

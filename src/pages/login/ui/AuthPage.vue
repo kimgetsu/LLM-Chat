@@ -13,13 +13,12 @@
 </template>
 
 <script setup lang="ts">
-import { useLogin } from '../model/useLogin'
 import { ButtonSize, ButtonType, ButtonVariant, UiButton } from '@/shared/ui'
-
-const { startOAuth } = useLogin()
+// import { useLogin } from '../model/useLogin'
+// const { startOAuth } = useLogin()
 
 const handleAuth = () => {
-  startOAuth()
+  window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/start`
 }
 </script>
 

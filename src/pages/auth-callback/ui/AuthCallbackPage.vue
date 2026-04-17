@@ -6,12 +6,18 @@
 
 <script setup lang="ts">
 import { onMounted } from 'vue'
-import { useAuthCallback } from '../model/useAuthCallback'
+import { useAuthStore } from '@/shared/stores/authStore'
+import { router, RouteNames } from '@/app/router'
+// import { useAuthCallback } from '../model/useAuthCallback'
 
-const { handleAuthCallback } = useAuthCallback()
+const authStore = useAuthStore()
 
-onMounted(() => {
-  handleAuthCallback()
+onMounted(async () => {
+  try {
+    await authStore.fetchMe()
+  } finally {
+    router.replace({ name: RouteNames.HomePage })
+  }
 })
 </script>
 
