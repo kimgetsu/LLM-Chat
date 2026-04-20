@@ -1,7 +1,6 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-// import { openRouterApi } from '@/shared/api/openRouterApi'
 import type { Attachment } from '@/entities/attachment/types'
 import type { Chat, Message, BaseMessage, Request } from './types'
 import { buildCurrentContent, buildHistoryMessages } from './helpers'

@@ -9,8 +9,6 @@ export function globalAuthGuard() {
   router.beforeEach(async to => {
     const authStore = useAuthStore()
 
-    if (to.name === RouteNames.AuthCallback) return
-
     if (!authStore.isLoaded) {
       await authStore.fetchMe()
     }
@@ -22,12 +20,6 @@ export function globalAuthGuard() {
     if (to.meta?.isAuthRoute && authStore.isAuthenticated) {
       return { name: RouteNames.HomePage }
     }
-
-    // const chatStore = useChatStore()
-
-    // if (!chatStore.initialized) {
-    //   chatStore.loadFromStorage()
-    // }
   })
 }
 

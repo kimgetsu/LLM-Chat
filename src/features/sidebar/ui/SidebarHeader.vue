@@ -1,7 +1,7 @@
 <template>
   <header class="sidebar-header">
     <div class="header-content">
-      <img src="../../../shared//assets//icons/Avatar.png" alt="Avatar" class="avatar" />
+      <img src="../../../shared/assets/icons/Avatar.png" alt="Avatar" class="avatar" />
       <p v-if="!isCollapsed" class="d-2 medium username">Denis Kim</p>
     </div>
     <div class="header-actions" :class="{ collapsed: isCollapsed }">

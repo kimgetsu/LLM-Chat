@@ -14,8 +14,6 @@
 
 <script setup lang="ts">
 import { ButtonSize, ButtonType, ButtonVariant, UiButton } from '@/shared/ui'
-// import { useLogin } from '../model/useLogin'
-// const { startOAuth } = useLogin()
 
 const handleAuth = () => {
   window.location.href = `${import.meta.env.VITE_API_BASE_URL}/auth/start`
