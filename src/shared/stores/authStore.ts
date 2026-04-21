@@ -1,7 +1,7 @@
 import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
 import { api } from '@/shared/api/http'
-import type { User } from '@/features/chat/model/types'
+import type { User } from '@/entities/user/model/types'
 
 export const useAuthStore = defineStore('auth', () => {
   const user = ref<User | null>(null)
@@ -25,7 +25,6 @@ export const useAuthStore = defineStore('auth', () => {
       await api.post('/auth/logout')
     } finally {
       user.value = null
-      isLoaded.value = false
     }
   }
 

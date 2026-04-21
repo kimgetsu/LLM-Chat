@@ -46,7 +46,3 @@ export interface StoredData {
   messagesByChatId: Record<string, StoredMessage[]>
   requestsById: Record<string, StoredRequest>
 }
-
-export type User = {
-  id: string
-}
