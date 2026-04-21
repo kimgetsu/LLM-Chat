@@ -1,24 +1,32 @@
-import { computed } from 'vue'
+import { ref, computed } from 'vue'
 import { defineStore } from 'pinia'
-import { useStorage } from '@vueuse/core'
+import { api } from '@/shared/api/http'
+import type { User } from '@/entities/user/model/types'
 
 export const useAuthStore = defineStore('auth', () => {
-  const userKey = useStorage<string | null>('auth_user_key', null)
+  const user = ref<User | null>(null)
+  const isLoaded = ref(false)
 
-  const isAuthenticated = computed(() => !!userKey.value)
+  const isAuthenticated = computed(() => !!user.value)
 
-  function setUserKey(key: string) {
-    userKey.value = key
+  const fetchMe = async () => {
+    try {
+      const res = await api.get('/auth/me')
+      user.value = res.data.data
+    } catch {
+      user.value = null
+    } finally {
+      isLoaded.value = true
+    }
   }
 
-  function logout() {
-    userKey.value = null
+  const logout = async () => {
+    try {
+      await api.post('/auth/logout')
+    } finally {
+      user.value = null
+    }
   }
 
-  return {
-    isAuthenticated,
-    setUserKey,
-    logout,
-    userKey,
-  }
+  return { user, isAuthenticated, fetchMe, logout, isLoaded }
 })

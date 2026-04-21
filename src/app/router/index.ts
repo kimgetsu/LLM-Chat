@@ -5,7 +5,6 @@ export enum RouteNames {
   HomePage = 'home',
   ChatPage = 'chat',
   LoginPage = 'login',
-  AuthCallback = 'auth-callback',
 }
 
 const routes = [
@@ -32,12 +31,6 @@ const routes = [
     name: RouteNames.LoginPage,
     meta: { isAuthRoute: true },
     component: () => import('@/pages/login'),
-  },
-  {
-    path: '/auth-callback',
-    name: RouteNames.AuthCallback,
-    meta: { isAuthRoute: true },
-    component: () => import('@/pages/auth-callback'),
   },
 ]
 

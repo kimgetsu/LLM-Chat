@@ -4,11 +4,14 @@ import { useChatStore } from '@/features/chat/model/chatStore'
 import { RouteNames } from '@/app/router'
 
 export function globalAuthGuard() {
-  const authStore = useAuthStore()
   const router = useRouter()
 
-  router.beforeEach(to => {
-    if (to.name === RouteNames.AuthCallback) return
+  router.beforeEach(async to => {
+    const authStore = useAuthStore()
+
+    if (!authStore.isLoaded) {
+      await authStore.fetchMe()
+    }
 
     if (to.meta?.requiresAuth && !authStore.isAuthenticated) {
       return { name: RouteNames.LoginPage }
@@ -17,16 +20,11 @@ export function globalAuthGuard() {
     if (to.meta?.isAuthRoute && authStore.isAuthenticated) {
       return { name: RouteNames.HomePage }
     }
-
-    const chatStore = useChatStore()
-
-    if (!chatStore.initialized) {
-      chatStore.loadFromStorage()
-    }
   })
 }
 
 export function validateChatRoute(to: RouteLocationNormalized) {
+  // TODO: переписать после перевода чатов на backend
   const chatStore = useChatStore()
 
   const chatId = to.params.chatId as string

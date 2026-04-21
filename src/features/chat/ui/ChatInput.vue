@@ -61,7 +61,7 @@
 
 <script setup lang="ts">
 import { UiButton, ButtonVariant, ButtonSize, ButtonType } from '@/shared/ui'
-import SendIcon from '@/shared/assets/icons//SendIcon.svg'
+import SendIcon from '@/shared/assets/icons/SendIcon.svg'
 import { computed, ref } from 'vue'
 import ChatAttachmentList from './ChatAttachmentList.vue'
 import ClipIcon from '@/shared/assets/icons/ClipIcon.svg'
