@@ -1,50 +1,64 @@
 import type { Attachment } from '@/entities/attachment/types'
-import type { Message, Role } from './types'
-import { convertAttachmentToOpenRouterBlock } from '@/entities/attachment/adapter'
-import type { OpenRouterContentBlock } from '@/entities/attachment/types'
+import type { Chat, Message, ServerChat, ServerMessage, ServerAttachment } from './types'
+import { v4 as uuidv4 } from 'uuid'
 
-export function buildCurrentContent(attachments: Attachment[], text: string) {
-  if (attachments.length === 0) {
-    return text
+export function transformServerAttachment(serverAttachment: ServerAttachment): Attachment {
+  return {
+    id: uuidv4(),
+    kind: serverAttachment.type,
+    fileName: serverAttachment.url?.split('/').pop() || 'file',
+    mimeType: serverAttachment.mimeType,
+    size: 0,
+    status: 'ready',
+    source: {
+      type: 'url',
+      value: serverAttachment.url || serverAttachment.data || '',
+    },
   }
-
-  const blocks: OpenRouterContentBlock[] = []
-
-  if (text.trim()) {
-    blocks.push({ type: 'text', text })
-  }
-
-  for (const attachment of attachments) {
-    const block = convertAttachmentToOpenRouterBlock(attachment)
-    if (block) blocks.push(block)
-  }
-
-  return blocks
 }
 
-export function buildHistoryMessages(
-  allMessages: Message[],
-  options?: { isRetry?: boolean; requestId?: string }
-): Array<{ role: Role; content: string | OpenRouterContentBlock[] }> {
-  if (!options?.isRetry) {
-    return allMessages.slice(0, -1).map(m => ({
-      role: m.role,
-      content: m.content,
-    }))
+export function transformServerChat(serverChat: ServerChat): Chat {
+  return {
+    id: serverChat.id,
+    title: serverChat.title,
+    createdAt: Date.parse(serverChat.createdAt),
+    updatedAt: Date.parse(serverChat.updatedAt),
+  }
+}
+
+export function transformServerMessage(serverMsg: ServerMessage): Message {
+  const attachments = serverMsg.attachments?.map(transformServerAttachment)
+
+  const message: Message = {
+    id: serverMsg.id,
+    chatId: serverMsg.chatId,
+    role: serverMsg.role,
+    content: serverMsg.content,
+    status: serverMsg.status,
+    createdAt: Date.parse(serverMsg.createdAt),
+    attachments: attachments,
+    requestId: serverMsg.requestId,
   }
 
-  const requestId = options.requestId
-  const index = allMessages.findIndex(m => m.requestId === requestId && m.role === 'user')
+  return message
+}
 
-  if (index === -1) {
-    return allMessages.map(m => ({
-      role: m.role,
-      content: m.content,
-    }))
+export function mergeMessages(
+  existing: Message[],
+  newMessages: Message[],
+  prepend: boolean
+): Message[] {
+  let combined: Message[]
+
+  if (prepend) {
+    combined = [...newMessages, ...existing]
+  } else {
+    combined = [...existing, ...newMessages]
   }
 
-  return allMessages.slice(0, index).map(m => ({
-    role: m.role,
-    content: m.content,
-  }))
+  const uniqueMessages = combined.filter(
+    (msg, index, self) => index === self.findIndex(m => m.id === msg.id)
+  )
+
+  return uniqueMessages
 }

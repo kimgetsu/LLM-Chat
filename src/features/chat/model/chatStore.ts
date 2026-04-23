@@ -2,30 +2,71 @@ import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { Attachment } from '@/entities/attachment/types'
-import type { Chat, Message, BaseMessage, Request } from './types'
-import { buildCurrentContent, buildHistoryMessages } from './helpers'
-import { saveToStorage, loadFromStorage } from './storage'
+import type {
+  Chat,
+  Message,
+  BaseMessage,
+  Request,
+  ChatsResponse,
+  CreateChatResponse,
+  MessageResponse,
+} from './types'
+import { api } from '@/shared/api/http'
+import { mergeMessages, transformServerChat, transformServerMessage } from './helpers'
 
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
-  const initialized = ref(false)
   const loadingByChatId = ref<Record<string, boolean>>({})
   const errorByChatId = ref<Record<string, string | null>>({})
-  const requestsById = ref<Record<string, Request>>({})
+  const chatsNextCursor = ref<string | null>(null)
+  const chatsHasMore = ref<boolean>(true)
+  const isLoadingMoreChats = ref<boolean>(false)
+  const messagesCursorByChatId = ref<Record<string, string | null>>({})
+  const messagesHasMoreByChatId = ref<Record<string, boolean>>({})
+  const isLoadingMoreMessagesByChatId = ref<Record<string, boolean>>({})
+  const activeChatId = ref<string | null>(null)
 
   const sortedChats = computed(() => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
   })
 
-  function resetToDefault() {
-    chats.value = []
-    messagesByChatId.value = {}
-    requestsById.value = {}
+  async function fetchChats(cursor?: string | null, append: boolean = false) {
+    try {
+      const response = await api.get<ChatsResponse>(`/chats?limit=20&cursor=${cursor ?? ''}`)
+      const serverData = response.data
+      const transformedChats = serverData.data.map(transformServerChat)
+
+      if (append) {
+        chats.value.push(...transformedChats)
+      } else {
+        chats.value = transformedChats
+      }
+
+      chatsNextCursor.value = serverData.nextCursor
+      chatsHasMore.value = serverData.nextCursor !== null
+    } catch (err) {
+      console.error('Error: ', err)
+    }
   }
 
-  function persistToStorage() {
-    saveToStorage(chats.value, messagesByChatId.value, requestsById.value)
+  async function loadMoreChats() {
+    if (isLoadingMoreChats.value || !chatsHasMore.value) return
+
+    isLoadingMoreChats.value = true
+
+    try {
+      await fetchChats(chatsNextCursor.value, true)
+    } catch (err) {
+      console.error('Error: ', err)
+    } finally {
+      isLoadingMoreChats.value = false
+    }
+  }
+
+  async function initializeChats() {
+    if (chats.value.length > 0) return
+    await fetchChats(null, false)
   }
 
   function setChatLoading(chatId: string, value: boolean): void {
@@ -36,17 +77,76 @@ export const useChatStore = defineStore('chat', () => {
     errorByChatId.value[chatId] = error
   }
 
-  function createRequest(
-    requestId: string,
-    chatId: string,
-    text: string,
-    attachments: Attachment[] = []
-  ) {
-    requestsById.value[requestId] = {
-      id: requestId,
-      chatId,
-      content: text,
-      attachments,
+  async function createChatOnServer(title: string = 'New chat'): Promise<Chat> {
+    try {
+      const response = await api.post<CreateChatResponse>('/chats/create', { title })
+      const serverChat = response.data.data
+      const chat = transformServerChat(serverChat)
+
+      chats.value.unshift(chat)
+
+      messagesByChatId.value[chat.id] = []
+      messagesCursorByChatId.value[chat.id] = null
+      messagesHasMoreByChatId.value[chat.id] = false
+
+      return chat
+    } catch (err) {
+      console.error('Error: ', err)
+      throw err
+    }
+  }
+
+  async function fetchMessages(chatId: string, cursor?: string | null, prepend: boolean = false) {
+    loadingByChatId.value[chatId] = true
+
+    try {
+      const response = await api.get<MessageResponse>(
+        `/chats/${chatId}/messages?limit=50&cursor=${cursor ?? ''}&order=asc`
+      )
+      const currentChatInfo = response.data
+      const newMessages = currentChatInfo.data.map(transformServerMessage)
+
+      const existing = messagesByChatId.value[chatId] || []
+
+      messagesByChatId.value[chatId] = mergeMessages(existing, newMessages, prepend)
+
+      messagesCursorByChatId.value[chatId] = currentChatInfo.nextCursor
+      messagesHasMoreByChatId.value[chatId] = currentChatInfo.nextCursor !== null
+    } catch (err) {
+      console.error('Failed to fetch messages:', err)
+      throw err
+    } finally {
+      loadingByChatId.value[chatId] = false
+    }
+  }
+
+  async function loadMoreMessages(chatId: string) {
+    if (isLoadingMoreMessagesByChatId.value[chatId] || !messagesHasMoreByChatId.value[chatId])
+      return
+    try {
+      isLoadingMoreMessagesByChatId.value = {
+        ...isLoadingMoreMessagesByChatId.value,
+        [chatId]: true,
+      }
+      await fetchMessages(chatId, messagesCursorByChatId.value[chatId], true)
+    } catch (err) {
+      console.log('Error: ', err)
+    } finally {
+      isLoadingMoreMessagesByChatId.value = {
+        ...isLoadingMoreMessagesByChatId.value,
+        [chatId]: false,
+      }
+    }
+  }
+
+  async function selectChat(chatId: string) {
+    if (messagesByChatId.value[chatId]?.length) return
+    try {
+      activeChatId.value = chatId
+      await fetchMessages(chatId, null, false)
+    } catch (err) {
+      console.error('Error: ', err)
+      throw err
     }
   }
 
@@ -55,7 +155,7 @@ export const useChatStore = defineStore('chat', () => {
       ...data,
       id: uuidv4(),
       createdAt: Date.now(),
-      status: data.status ?? 'sent',
+      status: data.status ?? 'ok',
     }
 
     let messages = messagesByChatId.value[data.chatId]
@@ -74,24 +174,6 @@ export const useChatStore = defineStore('chat', () => {
     return message
   }
 
-  function updateChatTitle(chatId: string, title: string) {
-    const chat = chats.value.find(c => c.id === chatId)
-    if (chat) {
-      chat.title = title
-      chat.updatedAt = Date.now()
-    }
-  }
-
-  function maybeUpdateChatTitle(chatId: string, text: string) {
-    const messages = messagesByChatId.value[chatId] || []
-    const userMessagesCount = messages.filter(m => m.role === 'user').length - 1
-
-    if (userMessagesCount === 0) {
-      const shortTitle = text.length > 30 ? text.slice(0, 30) + '...' : text
-      updateChatTitle(chatId, shortTitle)
-    }
-  }
-
   function getRetryRequest(message: Message): Request | null {
     if (message.role !== 'assistant') return null
 
@@ -107,41 +189,20 @@ export const useChatStore = defineStore('chat', () => {
     const requestId = message.requestId
     if (!requestId) return null
 
-    const request = requestsById.value[requestId]
+    const request = requestsById.value[requestId] // TODO: 4 задача
     if (!request) return null
 
     return request
   }
 
-  function loadFromStorageHandler() {
-    const stored = loadFromStorage()
-
-    if (stored) {
-      chats.value = stored.chats
-      messagesByChatId.value = stored.messagesByChatId
-      requestsById.value = stored.requestsById
-    } else {
-      resetToDefault()
+  async function createChat(initialMessage?: string) {
+    try {
+      const newChat = await createChatOnServer(initialMessage)
+      return newChat.id
+    } catch (err) {
+      console.error('Create chat failed: ', err)
+      throw err
     }
-
-    initialized.value = true
-  }
-
-  function createChat() {
-    const id = uuidv4()
-    const now = Date.now()
-
-    const newChat: Chat = {
-      id,
-      title: 'New Chat',
-      createdAt: now,
-      updatedAt: now,
-    }
-
-    chats.value.push(newChat)
-    messagesByChatId.value[id] = []
-    persistToStorage()
-    return id
   }
 
   async function sendMessage(
@@ -155,7 +216,8 @@ export const useChatStore = defineStore('chat', () => {
     const requestId = options?.requestId ?? uuidv4()
 
     if (!options?.isRetry) {
-      createRequest(requestId, chatId, text, attachments)
+      // TODO: 4 задача
+      // createRequest(requestId, chatId, text, attachments)
     }
 
     if (!options?.isRetry) {
@@ -164,21 +226,20 @@ export const useChatStore = defineStore('chat', () => {
         role: 'user',
         content: text,
         attachments,
-        status: 'sent',
+        status: 'ok',
         requestId,
       })
     }
 
-    maybeUpdateChatTitle(chatId, text)
     setChatLoading(chatId, true)
     setChatError(chatId, null)
 
     try {
       const allMessages = messagesByChatId.value[chatId] ?? []
-      const historyMessages = buildHistoryMessages(allMessages, options)
+      const historyMessages = buildHistoryMessages(allMessages, options) // TODO: 4 задача
       const messages = [
         ...historyMessages,
-        { role: 'user' as const, content: buildCurrentContent(attachments, text) },
+        { role: 'user' as const, content: buildCurrentContent(attachments, text) }, // TODO: 4 задача
       ]
 
       const response = await openRouterApi.sendMessage(messages) // TODO: заменить на backend API
@@ -188,14 +249,13 @@ export const useChatStore = defineStore('chat', () => {
         chatId,
         role: 'assistant',
         content: assistantText,
-        status: 'sent',
+        status: 'ok',
         requestId,
       })
     } catch (err) {
       setChatError(chatId, 'Ошибка при обращении к OpenRouter')
     } finally {
       setChatLoading(chatId, false)
-      persistToStorage()
     }
   }
 
@@ -220,8 +280,6 @@ export const useChatStore = defineStore('chat', () => {
 
     messagesByChatId.value[message.chatId] = messages.slice(0, messageIndex)
 
-    persistToStorage()
-
     sendMessage(request.chatId, request.content, request.attachments, {
       isRetry: true,
       requestId: message.requestId,
@@ -231,14 +289,21 @@ export const useChatStore = defineStore('chat', () => {
   return {
     chats,
     messagesByChatId,
-    initialized,
     loadingByChatId,
     errorByChatId,
     sortedChats,
-    loadFromStorage: loadFromStorageHandler,
     createChat,
     sendMessage,
     retryMessage,
     canRetryMessage,
+    initializeChats,
+    fetchChats,
+    loadMoreChats,
+    fetchMessages,
+    loadMoreMessages,
+    selectChat,
+    createChatOnServer,
+    activeChatId,
+    isLoadingMoreChats,
   }
 })

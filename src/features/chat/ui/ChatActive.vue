@@ -75,8 +75,8 @@ const handleSend = async (text: string, attachments: Attachment[]) => {
   let chatId = currentChatId.value
 
   if (!chatId) {
-    chatId = chatStore.createChat()
-    await router.push({ name: RouteNames.ChatPage, params: { chatId } })
+    chatId = await chatStore.createChat()
+    router.push({ name: RouteNames.ChatPage, params: { chatId } })
   }
 
   await chatStore.sendMessage(chatId, text, attachments)

@@ -15,7 +15,7 @@ export interface AttachmentMeta {
 export interface Attachment {
   id: string
   kind: AttachmentKind
-  file: File
+  file?: File
   mimeType: string
   fileName: string
   size: number

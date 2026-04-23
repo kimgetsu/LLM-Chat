@@ -21,13 +21,13 @@ const router = useRouter()
 const chatStore = useChatStore()
 
 const createAndOpenChat = async (initialMessage?: string) => {
-  const chatId = chatStore.createChat()
+  const newChatId = await chatStore.createChat(initialMessage)
 
-  await router.push({ name: RouteNames.ChatPage, params: { chatId } })
+  router.push({ name: RouteNames.ChatPage, params: { newChatId } })
 
   if (!initialMessage?.trim()) return
 
-  await chatStore.sendMessage(chatId, initialMessage)
+  await chatStore.sendMessage(newChatId, initialMessage)
 }
 </script>
 

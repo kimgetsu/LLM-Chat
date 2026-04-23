@@ -99,8 +99,10 @@ export function useChatFiles() {
     updateAttachment('converting')
 
     try {
-      const dataUrl = await convertToBase64(attachment.file)
-      updateAttachment('ready', dataUrl)
+      if (attachment.file) {
+        const dataUrl = await convertToBase64(attachment.file)
+        updateAttachment('ready', dataUrl)
+      }
     } catch (error) {
       updateAttachment('error')
     }
