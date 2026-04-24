@@ -1,18 +1,14 @@
 import { defineStore } from 'pinia'
 import { ref, computed } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
+import { mergeMessages } from './helpers'
+import {
+  createChatFromApi,
+  fetchChatsFromApi,
+  fetchMessagesFromApi,
+} from '@/features/chat/api/chatApi'
 import type { Attachment } from '@/entities/attachment/types'
-import type {
-  Chat,
-  Message,
-  BaseMessage,
-  Request,
-  ChatsResponse,
-  CreateChatResponse,
-  MessageResponse,
-} from './types'
-import { api } from '@/shared/api/http'
-import { mergeMessages, transformServerChat, transformServerMessage } from './helpers'
+import type { Chat, Message, BaseMessage, Request } from './types'
 
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
@@ -33,9 +29,7 @@ export const useChatStore = defineStore('chat', () => {
 
   async function fetchChats(cursor?: string | null, append: boolean = false) {
     try {
-      const response = await api.get<ChatsResponse>(`/chats?limit=20&cursor=${cursor ?? ''}`)
-      const serverData = response.data
-      const transformedChats = serverData.data.map(transformServerChat)
+      const { transformedChats, nextCursor } = await fetchChatsFromApi(cursor)
 
       if (append) {
         chats.value.push(...transformedChats)
@@ -43,10 +37,10 @@ export const useChatStore = defineStore('chat', () => {
         chats.value = transformedChats
       }
 
-      chatsNextCursor.value = serverData.nextCursor
-      chatsHasMore.value = serverData.nextCursor !== null
+      chatsNextCursor.value = nextCursor
+      chatsHasMore.value = nextCursor !== null
     } catch (err) {
-      console.error('Error: ', err)
+      console.error('Failed to fetch chats: ', err)
     }
   }
 
@@ -79,10 +73,7 @@ export const useChatStore = defineStore('chat', () => {
 
   async function createChatOnServer(title: string = 'New chat'): Promise<Chat> {
     try {
-      const response = await api.post<CreateChatResponse>('/chats/create', { title })
-      const serverChat = response.data.data
-      const chat = transformServerChat(serverChat)
-
+      const chat = await createChatFromApi(title)
       chats.value.unshift(chat)
 
       messagesByChatId.value[chat.id] = []
@@ -91,7 +82,7 @@ export const useChatStore = defineStore('chat', () => {
 
       return chat
     } catch (err) {
-      console.error('Error: ', err)
+      console.error('Failed to create chat: ', err)
       throw err
     }
   }
@@ -100,18 +91,13 @@ export const useChatStore = defineStore('chat', () => {
     loadingByChatId.value[chatId] = true
 
     try {
-      const response = await api.get<MessageResponse>(
-        `/chats/${chatId}/messages?limit=50&cursor=${cursor ?? ''}&order=asc`
-      )
-      const currentChatInfo = response.data
-      const newMessages = currentChatInfo.data.map(transformServerMessage)
-
+      const { newMessages, nextCursor } = await fetchMessagesFromApi(chatId, cursor)
       const existing = messagesByChatId.value[chatId] || []
 
       messagesByChatId.value[chatId] = mergeMessages(existing, newMessages, prepend)
 
-      messagesCursorByChatId.value[chatId] = currentChatInfo.nextCursor
-      messagesHasMoreByChatId.value[chatId] = currentChatInfo.nextCursor !== null
+      messagesCursorByChatId.value[chatId] = nextCursor
+      messagesHasMoreByChatId.value[chatId] = nextCursor !== null
     } catch (err) {
       console.error('Failed to fetch messages:', err)
       throw err
