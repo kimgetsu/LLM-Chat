@@ -26,11 +26,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted, onUnmounted, watch } from 'vue'
+import { ref, watch, nextTick } from 'vue'
 import { useSidebarState } from '@/features/sidebar'
 import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute } from 'vue-router'
-import { useAppBreakpoints } from '@/shared/composables'
+import { useAppBreakpoints, useInfiniteScroll } from '@/shared/composables'
 import { RouteNames } from '@/app/router'
 
 const { isCollapsed, close } = useSidebarState()
@@ -39,44 +39,16 @@ const chatStore = useChatStore()
 const route = useRoute()
 const chatListRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
-
-let observer: IntersectionObserver | null = null
-
-const setupInfiniteScroll = () => {
-  if (!loadMoreTriggerRef.value) return
-  observer = new IntersectionObserver(
-    entries => {
-      const entry = entries[0]
-      if (entry?.isIntersecting) {
-        chatStore.loadMoreChats()
-      }
-    },
-    {
-      root: chatListRef.value,
-      rootMargin: '50px',
-      threshold: 0.1,
-    }
-  )
-  observer.observe(loadMoreTriggerRef.value)
-}
-
-onMounted(() => {
-  setupInfiniteScroll()
-})
-
-onUnmounted(() => {
-  observer?.disconnect()
+const { reset } = useInfiniteScroll({
+  targetRef: loadMoreTriggerRef,
+  rootRef: chatListRef,
+  onIntersect: () => chatStore.loadMoreChats(),
 })
 
 watch(
   () => chatStore.sortedChats.length,
   (newLength, oldLength) => {
-    setTimeout(() => {
-      if (loadMoreTriggerRef.value) {
-        observer?.unobserve(loadMoreTriggerRef.value)
-        observer?.observe(loadMoreTriggerRef.value)
-      }
-    }, 0)
+    nextTick(() => reset())
 
     if (newLength > oldLength && chatListRef.value) {
       chatListRef.value.scrollTop = 0
