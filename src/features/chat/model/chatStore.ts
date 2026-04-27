@@ -9,19 +9,25 @@ import {
 } from '@/features/chat/api/chatApi'
 import type { Attachment } from '@/entities/attachment/types'
 import type { Chat, Message, BaseMessage, Request } from './types'
+import { useChatPagination } from './useChatPagination'
 
 export const useChatStore = defineStore('chat', () => {
   const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const loadingByChatId = ref<Record<string, boolean>>({})
   const errorByChatId = ref<Record<string, string | null>>({})
-  const chatsNextCursor = ref<string | null>(null)
-  const chatsHasMore = ref<boolean>(true)
-  const isLoadingMoreChats = ref<boolean>(false)
-  const messagesCursorByChatId = ref<Record<string, string | null>>({})
-  const messagesHasMoreByChatId = ref<Record<string, boolean>>({})
-  const isLoadingMoreMessagesByChatId = ref<Record<string, boolean>>({})
   const activeChatId = ref<string | null>(null)
+  const {
+    chatsNextCursor,
+    chatsHasMore,
+    isLoadingMoreChats,
+    messagesCursorByChatId,
+    messagesHasMoreByChatId,
+    isLoadingMoreMessagesByChatId,
+    updateChatsPagination,
+    setChatLoading,
+    updateMessagesPagination,
+  } = useChatPagination()
 
   const sortedChats = computed(() => {
     return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
@@ -36,9 +42,7 @@ export const useChatStore = defineStore('chat', () => {
       } else {
         chats.value = transformedChats
       }
-
-      chatsNextCursor.value = nextCursor
-      chatsHasMore.value = nextCursor !== null
+      updateChatsPagination(nextCursor)
     } catch (err) {
       console.error('Failed to fetch chats: ', err)
     }
@@ -61,10 +65,6 @@ export const useChatStore = defineStore('chat', () => {
   async function initializeChats() {
     if (chats.value.length > 0) return
     await fetchChats(null, false)
-  }
-
-  function setChatLoading(chatId: string, value: boolean): void {
-    loadingByChatId.value[chatId] = value
   }
 
   function setChatError(chatId: string, error: string | null): void {
@@ -96,8 +96,7 @@ export const useChatStore = defineStore('chat', () => {
 
       messagesByChatId.value[chatId] = mergeMessages(existing, newMessages, prepend)
 
-      messagesCursorByChatId.value[chatId] = nextCursor
-      messagesHasMoreByChatId.value[chatId] = nextCursor !== null
+      updateMessagesPagination(chatId, nextCursor)
     } catch (err) {
       console.error('Failed to fetch messages:', err)
       throw err
@@ -110,18 +109,12 @@ export const useChatStore = defineStore('chat', () => {
     if (isLoadingMoreMessagesByChatId.value[chatId] || !messagesHasMoreByChatId.value[chatId])
       return
     try {
-      isLoadingMoreMessagesByChatId.value = {
-        ...isLoadingMoreMessagesByChatId.value,
-        [chatId]: true,
-      }
+      setChatLoading(chatId, true)
       await fetchMessages(chatId, messagesCursorByChatId.value[chatId], true)
     } catch (err) {
       console.log('Error: ', err)
     } finally {
-      isLoadingMoreMessagesByChatId.value = {
-        ...isLoadingMoreMessagesByChatId.value,
-        [chatId]: false,
-      }
+      setChatLoading(chatId, false)
     }
   }
 
@@ -278,18 +271,14 @@ export const useChatStore = defineStore('chat', () => {
     loadingByChatId,
     errorByChatId,
     sortedChats,
+    activeChatId,
     createChat,
     sendMessage,
-    retryMessage,
-    canRetryMessage,
+    retryMessage, // TODO: Перенос в ChatActive (?)
+    canRetryMessage, // TODO: Перенос в ChatActive (?)
     initializeChats,
-    fetchChats,
     loadMoreChats,
-    fetchMessages,
     loadMoreMessages,
     selectChat,
-    createChatOnServer,
-    activeChatId,
-    isLoadingMoreChats,
   }
 })

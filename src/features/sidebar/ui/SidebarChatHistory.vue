@@ -16,7 +16,7 @@
         </router-link>
       </li>
 
-      <li v-if="chatStore.isLoadingMoreChats" class="chat-item loading-indicator">
+      <li v-if="isLoadingMoreChats" class="chat-item loading-indicator">
         <span class="d-2 regular">Loading...</span>
       </li>
 
@@ -29,6 +29,7 @@
 import { ref, watch, nextTick } from 'vue'
 import { useSidebarState } from '@/features/sidebar'
 import { useChatStore } from '@/features/chat/model/chatStore'
+import { useChatPagination } from '@/features/chat/model/useChatPagination'
 import { useRoute } from 'vue-router'
 import { useAppBreakpoints, useInfiniteScroll } from '@/shared/composables'
 import { RouteNames } from '@/app/router'
@@ -36,6 +37,7 @@ import { RouteNames } from '@/app/router'
 const { isCollapsed, close } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
 const chatStore = useChatStore()
+const { isLoadingMoreChats } = useChatPagination()
 const route = useRoute()
 const chatListRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
