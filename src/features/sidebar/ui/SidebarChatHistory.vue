@@ -2,12 +2,7 @@
   <section v-if="!isCollapsed" class="chat-history" ref="chatListRef">
     <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
     <ul class="chat-list">
-      <li
-        v-for="chat in chatStore.sortedChats"
-        :key="chat.id"
-        class="chat-item"
-        @click="closeSidebarOnMobile"
-      >
+      <li v-for="chat in chats" :key="chat.id" class="chat-item" @click="closeSidebarOnMobile">
         <router-link
           :to="{ name: RouteNames.ChatPage, params: { chatId: chat.id } }"
           :class="['chat-link', route.params.chatId === chat.id ? 'selected-chat' : '']"
@@ -16,7 +11,7 @@
         </router-link>
       </li>
 
-      <li v-if="isLoadingMoreChats" class="chat-item loading-indicator">
+      <li v-if="isFetchingNextPage" class="chat-item loading-indicator">
         <span class="d-2 regular">Loading...</span>
       </li>
 
@@ -26,29 +21,32 @@
 </template>
 
 <script setup lang="ts">
-import { ref, watch, nextTick } from 'vue'
+import { ref, watch, nextTick, computed } from 'vue'
 import { useSidebarState } from '@/features/sidebar'
-import { useChatStore } from '@/features/chat/model/chatStore'
-import { useChatPagination } from '@/features/chat/model/useChatPagination'
 import { useRoute } from 'vue-router'
 import { useAppBreakpoints, useInfiniteScroll } from '@/shared/composables'
 import { RouteNames } from '@/app/router'
+import { useChatsQuery } from '@/features/chat/api/useChatsQuery'
 
 const { isCollapsed, close } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
-const chatStore = useChatStore()
-const { isLoadingMoreChats } = useChatPagination()
 const route = useRoute()
+
+const { data, fetchNextPage, isFetchingNextPage } = useChatsQuery()
+
+const chats = computed(() => data.value?.pages.flatMap(p => p.transformedChats) ?? [])
+
 const chatListRef = ref<HTMLElement | null>(null)
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
+
 const { reset } = useInfiniteScroll({
   targetRef: loadMoreTriggerRef,
   rootRef: chatListRef,
-  onIntersect: () => chatStore.loadMoreChats(),
+  onIntersect: () => void fetchNextPage(),
 })
 
 watch(
-  () => chatStore.sortedChats.length,
+  () => chats.value.length,
   (newLength, oldLength) => {
     nextTick(() => reset())
 

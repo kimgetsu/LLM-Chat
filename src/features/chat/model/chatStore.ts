@@ -1,132 +1,17 @@
 import { defineStore } from 'pinia'
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
-import { mergeMessages } from './helpers'
-import {
-  createChatFromApi,
-  fetchChatsFromApi,
-  fetchMessagesFromApi,
-} from '@/features/chat/api/chatApi'
 import type { Attachment } from '@/entities/attachment/types'
-import type { Chat, Message, BaseMessage, Request } from './types'
-import { useChatPagination } from './useChatPagination'
+import type { Message, BaseMessage, Request } from './types'
 
 export const useChatStore = defineStore('chat', () => {
-  const chats = ref<Chat[]>([])
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const loadingByChatId = ref<Record<string, boolean>>({})
   const errorByChatId = ref<Record<string, string | null>>({})
-  const activeChatId = ref<string | null>(null)
-  const {
-    chatsNextCursor,
-    chatsHasMore,
-    isLoadingMoreChats,
-    messagesCursorByChatId,
-    messagesHasMoreByChatId,
-    isLoadingMoreMessagesByChatId,
-    updateChatsPagination,
-    setChatLoading,
-    updateMessagesPagination,
-  } = useChatPagination()
+  const requestsById = ref<Record<string, Request>>({})
 
-  const sortedChats = computed(() => {
-    return [...chats.value].sort((a, b) => b.updatedAt - a.updatedAt)
-  })
-
-  async function fetchChats(cursor?: string | null, append: boolean = false) {
-    try {
-      const { transformedChats, nextCursor } = await fetchChatsFromApi(cursor)
-
-      if (append) {
-        chats.value.push(...transformedChats)
-      } else {
-        chats.value = transformedChats
-      }
-      updateChatsPagination(nextCursor)
-    } catch (err) {
-      console.error('Failed to fetch chats: ', err)
-    }
-  }
-
-  async function loadMoreChats() {
-    if (isLoadingMoreChats.value || !chatsHasMore.value) return
-
-    isLoadingMoreChats.value = true
-
-    try {
-      await fetchChats(chatsNextCursor.value, true)
-    } catch (err) {
-      console.error('Error: ', err)
-    } finally {
-      isLoadingMoreChats.value = false
-    }
-  }
-
-  async function initializeChats() {
-    if (chats.value.length > 0) return
-    await fetchChats(null, false)
-  }
-
-  function setChatError(chatId: string, error: string | null): void {
+  function setChatError(chatId: string, error: string | null) {
     errorByChatId.value[chatId] = error
-  }
-
-  async function createChatOnServer(title: string = 'New chat'): Promise<Chat> {
-    try {
-      const chat = await createChatFromApi(title)
-      chats.value.unshift(chat)
-
-      messagesByChatId.value[chat.id] = []
-      messagesCursorByChatId.value[chat.id] = null
-      messagesHasMoreByChatId.value[chat.id] = false
-
-      return chat
-    } catch (err) {
-      console.error('Failed to create chat: ', err)
-      throw err
-    }
-  }
-
-  async function fetchMessages(chatId: string, cursor?: string | null, prepend: boolean = false) {
-    loadingByChatId.value[chatId] = true
-
-    try {
-      const { newMessages, nextCursor } = await fetchMessagesFromApi(chatId, cursor)
-      const existing = messagesByChatId.value[chatId] || []
-
-      messagesByChatId.value[chatId] = mergeMessages(existing, newMessages, prepend)
-
-      updateMessagesPagination(chatId, nextCursor)
-    } catch (err) {
-      console.error('Failed to fetch messages:', err)
-      throw err
-    } finally {
-      loadingByChatId.value[chatId] = false
-    }
-  }
-
-  async function loadMoreMessages(chatId: string) {
-    if (isLoadingMoreMessagesByChatId.value[chatId] || !messagesHasMoreByChatId.value[chatId])
-      return
-    try {
-      setChatLoading(chatId, true)
-      await fetchMessages(chatId, messagesCursorByChatId.value[chatId], true)
-    } catch (err) {
-      console.log('Error: ', err)
-    } finally {
-      setChatLoading(chatId, false)
-    }
-  }
-
-  async function selectChat(chatId: string) {
-    if (messagesByChatId.value[chatId]?.length) return
-    try {
-      activeChatId.value = chatId
-      await fetchMessages(chatId, null, false)
-    } catch (err) {
-      console.error('Error: ', err)
-      throw err
-    }
   }
 
   function addMessage(data: BaseMessage): Message {
@@ -142,13 +27,7 @@ export const useChatStore = defineStore('chat', () => {
       messages = []
       messagesByChatId.value[data.chatId] = messages
     }
-
     messages.push(message)
-
-    const chat = chats.value.find(c => c.id === data.chatId)
-    if (chat) {
-      chat.updatedAt = Date.now()
-    }
 
     return message
   }
@@ -168,20 +47,8 @@ export const useChatStore = defineStore('chat', () => {
     const requestId = message.requestId
     if (!requestId) return null
 
-    const request = requestsById.value[requestId] // TODO: 4 задача
-    if (!request) return null
-
-    return request
-  }
-
-  async function createChat(initialMessage?: string) {
-    try {
-      const newChat = await createChatOnServer(initialMessage)
-      return newChat.id
-    } catch (err) {
-      console.error('Create chat failed: ', err)
-      throw err
-    }
+    const request = requestsById.value[requestId]
+    return request ?? null
   }
 
   async function sendMessage(
@@ -195,11 +62,6 @@ export const useChatStore = defineStore('chat', () => {
     const requestId = options?.requestId ?? uuidv4()
 
     if (!options?.isRetry) {
-      // TODO: 4 задача
-      // createRequest(requestId, chatId, text, attachments)
-    }
-
-    if (!options?.isRetry) {
       addMessage({
         chatId,
         role: 'user',
@@ -210,18 +72,18 @@ export const useChatStore = defineStore('chat', () => {
       })
     }
 
-    setChatLoading(chatId, true)
+    loadingByChatId.value[chatId] = true
     setChatError(chatId, null)
 
     try {
       const allMessages = messagesByChatId.value[chatId] ?? []
-      const historyMessages = buildHistoryMessages(allMessages, options) // TODO: 4 задача
+      const historyMessages = buildHistoryMessages(allMessages, options)
       const messages = [
         ...historyMessages,
-        { role: 'user' as const, content: buildCurrentContent(attachments, text) }, // TODO: 4 задача
+        { role: 'user' as const, content: buildCurrentContent(attachments, text) },
       ]
 
-      const response = await openRouterApi.sendMessage(messages) // TODO: заменить на backend API
+      const response = await openRouterApi.sendMessage(messages)
       const assistantText = response.data.choices[0]?.message.content ?? ''
 
       addMessage({
@@ -234,7 +96,7 @@ export const useChatStore = defineStore('chat', () => {
     } catch (err) {
       setChatError(chatId, 'Ошибка при обращении к OpenRouter')
     } finally {
-      setChatLoading(chatId, false)
+      loadingByChatId.value[chatId] = false
     }
   }
 
@@ -244,7 +106,6 @@ export const useChatStore = defineStore('chat', () => {
 
   function retryMessage(message: Message) {
     const request = getRetryRequest(message)
-
     if (!request) {
       console.warn('Retry disabled: invalid request or message has attachments')
       return
@@ -254,7 +115,6 @@ export const useChatStore = defineStore('chat', () => {
     if (!messages) return
 
     const messageIndex = messages.findIndex(m => m.id === message.id)
-
     if (messageIndex === -1) return
 
     messagesByChatId.value[message.chatId] = messages.slice(0, messageIndex)
@@ -266,19 +126,10 @@ export const useChatStore = defineStore('chat', () => {
   }
 
   return {
-    chats,
-    messagesByChatId,
     loadingByChatId,
     errorByChatId,
-    sortedChats,
-    activeChatId,
-    createChat,
     sendMessage,
-    retryMessage, // TODO: Перенос в ChatActive (?)
-    canRetryMessage, // TODO: Перенос в ChatActive (?)
-    initializeChats,
-    loadMoreChats,
-    loadMoreMessages,
-    selectChat,
+    retryMessage,
+    canRetryMessage,
   }
 })

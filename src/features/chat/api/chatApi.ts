@@ -1,10 +1,16 @@
 import { api } from '@/shared/api/http'
 import { transformServerChat, transformServerMessage } from '@/features/chat/model/helpers'
-import type { ChatsResponse, CreateChatResponse, MessageResponse } from '../model/types'
+import type {
+  ChatsResponse,
+  CreateChatResponse,
+  MessageResponse,
+} from '@/features/chat/model/types'
 
 export async function fetchChatsFromApi(cursor?: string | null) {
   try {
-    const response = await api.get<ChatsResponse>(`/chats?limit=20&cursor=${cursor ?? ''}`)
+    const params: Record<string, string> = { limit: '20' }
+    if (cursor) params.cursor = cursor
+    const response = await api.get<ChatsResponse>('/chats', { params })
     const serverData = response.data
     const transformedChats = serverData.data.map(transformServerChat)
     return { transformedChats, nextCursor: serverData.nextCursor }
@@ -26,9 +32,9 @@ export async function createChatFromApi(title: string) {
 
 export async function fetchMessagesFromApi(chatId: string, cursor?: string | null) {
   try {
-    const response = await api.get<MessageResponse>(
-      `/chats/${chatId}/messages?limit=50&cursor=${cursor ?? ''}&order=asc`
-    )
+    const params: Record<string, string> = { limit: '50', order: 'asc' }
+    if (cursor) params.cursor = cursor
+    const response = await api.get<MessageResponse>(`/chats/${chatId}/messages`, { params })
     const currentChatInfo = response.data
     const newMessages = currentChatInfo.data.map(transformServerMessage)
     return { newMessages, nextCursor: currentChatInfo.nextCursor }

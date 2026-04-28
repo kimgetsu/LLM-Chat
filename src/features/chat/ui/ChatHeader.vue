@@ -26,30 +26,32 @@
 </template>
 
 <script setup lang="ts">
+import { computed } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
 import PlusIcon from '@/shared/assets/icons/PlusIcon.svg'
 import SidebarIcon from '@/shared/assets/icons/SidebarIcon.svg'
 import { UiButton, ButtonVariant, ButtonSize } from '@/shared/ui'
 import { useSidebarState } from '@/features/sidebar'
 import { useAppBreakpoints } from '@/shared/composables'
-import { useRoute, useRouter } from 'vue-router'
-import { computed } from 'vue'
-import { useChatStore } from '@/features/chat/model/chatStore'
 import { RouteNames } from '@/app/router'
+import { useChatsQuery } from '@/features/chat/api/useChatsQuery'
 
 const { toggle } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
 const route = useRoute()
 const router = useRouter()
-const chatStore = useChatStore()
+
+const { data } = useChatsQuery()
 
 const chatTitle = computed(() => {
-  const chatId = route.params.chatId
+  const chatId = route.params.chatId as string
 
   if (!chatId) {
     return 'Chats'
   }
 
-  return chatStore.chats.find(c => c.id === chatId)?.title
+  const allChats = data.value?.pages.flatMap(p => p.transformedChats) ?? []
+  return allChats.find(c => c.id === chatId)?.title || 'Chats'
 })
 
 const handleNewChat = () => {
