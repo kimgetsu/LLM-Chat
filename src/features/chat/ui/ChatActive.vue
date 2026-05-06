@@ -15,7 +15,7 @@
           :createdAt="message.createdAt"
           :attachments="message.attachments"
           :id="message.id"
-          :canRetry="chatStore.canRetryMessage(message)"
+          :canRetry="canRetryMessage(message)"
           @retry="handleRetryMessage"
         />
       </div>
@@ -116,10 +116,38 @@ const handleSend = async (text: string, attachments: Attachment[]) => {
   }
 }
 
-const handleRetryMessage = (messageId: string) => {
+const canRetryMessage = (message: Message): boolean => {
+  if (message.role !== 'assistant') return false
+  const messages = sortedMessages.value
+  const index = messages.findIndex(m => m.id === message.id)
+  if (index <= 0) return false
+  const userMessage = messages[index - 1]
+  if (userMessage?.attachments?.length) return false
+  return !!userMessage?.requestId
+}
+
+const retryMessage = async (message: Message) => {
+  const messages = sortedMessages.value
+  const index = messages.findIndex(m => m.id === message.id)
+  if (index <= 0) return
+  const userMessage = messages[index - 1]
+
+  chatStore.sendMessage(message.chatId, userMessage!.content, userMessage?.attachments, {
+    isRetry: true,
+    requestId: userMessage?.requestId,
+  })
+
+  await queryClient.invalidateQueries({
+    queryKey: ['chat', message.chatId, 'messages'],
+  })
+
+  nextTick(() => scrollToNewMessage())
+}
+
+const handleRetryMessage = async (messageId: string) => {
   const message = sortedMessages.value.find(m => m.id === messageId)
   if (!message) return
-  chatStore.retryMessage(message)
+  await retryMessage(message)
 }
 </script>
 

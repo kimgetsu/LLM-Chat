@@ -2,13 +2,12 @@ import { defineStore } from 'pinia'
 import { ref } from 'vue'
 import { v4 as uuidv4 } from 'uuid'
 import type { Attachment } from '@/entities/attachment/types'
-import type { Message, BaseMessage, Request } from './types'
+import type { Message, BaseMessage } from './types'
 
 export const useChatStore = defineStore('chat', () => {
   const messagesByChatId = ref<Record<string, Message[]>>({})
   const loadingByChatId = ref<Record<string, boolean>>({})
   const errorByChatId = ref<Record<string, string | null>>({})
-  const requestsById = ref<Record<string, Request>>({})
 
   function setChatError(chatId: string, error: string | null) {
     errorByChatId.value[chatId] = error
@@ -30,25 +29,6 @@ export const useChatStore = defineStore('chat', () => {
     messages.push(message)
 
     return message
-  }
-
-  function getRetryRequest(message: Message): Request | null {
-    if (message.role !== 'assistant') return null
-
-    const messages = messagesByChatId.value[message.chatId]
-    if (!messages) return null
-
-    const messageIndex = messages.findIndex(m => m.id === message.id)
-    if (messageIndex <= 0) return null
-
-    const userMessage = messages[messageIndex - 1]
-    if (userMessage?.attachments?.length) return null
-
-    const requestId = message.requestId
-    if (!requestId) return null
-
-    const request = requestsById.value[requestId]
-    return request ?? null
   }
 
   async function sendMessage(
@@ -100,36 +80,9 @@ export const useChatStore = defineStore('chat', () => {
     }
   }
 
-  function canRetryMessage(message: Message): boolean {
-    return getRetryRequest(message) !== null
-  }
-
-  function retryMessage(message: Message) {
-    const request = getRetryRequest(message)
-    if (!request) {
-      console.warn('Retry disabled: invalid request or message has attachments')
-      return
-    }
-
-    const messages = messagesByChatId.value[message.chatId]
-    if (!messages) return
-
-    const messageIndex = messages.findIndex(m => m.id === message.id)
-    if (messageIndex === -1) return
-
-    messagesByChatId.value[message.chatId] = messages.slice(0, messageIndex)
-
-    sendMessage(request.chatId, request.content, request.attachments, {
-      isRetry: true,
-      requestId: message.requestId,
-    })
-  }
-
   return {
     loadingByChatId,
     errorByChatId,
     sendMessage,
-    retryMessage,
-    canRetryMessage,
   }
 })

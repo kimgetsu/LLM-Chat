@@ -12,8 +12,7 @@ export function useInfiniteScroll({ targetRef, rootRef, onIntersect }: UseInfini
   const isLoading = ref(false)
 
   const setupInfiniteScroll = () => {
-    if (observer) return
-    if (!targetRef.value) return
+    if (observer || !targetRef.value) return
     observer = new IntersectionObserver(
       async entries => {
         const entry = entries[0]
