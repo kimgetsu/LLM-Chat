@@ -1,6 +1,5 @@
 import { useRouter, type RouteLocationNormalized } from 'vue-router'
 import { useAuthStore } from '@/shared/stores/authStore'
-import { useChatStore } from '@/features/chat/model/chatStore'
 import { RouteNames } from '@/app/router'
 
 export function globalAuthGuard() {
@@ -24,14 +23,7 @@ export function globalAuthGuard() {
 }
 
 export function validateChatRoute(to: RouteLocationNormalized) {
-  // TODO: переписать после перевода чатов на backend
-  const chatStore = useChatStore()
-
   const chatId = to.params.chatId as string
 
   if (!chatId) return { name: RouteNames.HomePage }
-
-  const exists = chatStore.chats.some(c => c.id === chatId)
-
-  if (!exists) return { name: RouteNames.HomePage }
 }

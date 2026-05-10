@@ -1,95 +1,153 @@
 <template>
-  <ChatDivider v-if="firstMessageDate" :date="firstMessageDate" />
+  <p v-if="isMessagesLoading" class="loading-message"><TypingLoader /></p>
+  <p v-else-if="messagesError" class="error-message">⚠ {{ messagesError.message }}</p>
 
-  <div class="messages" ref="messagesContainer">
-    <div v-for="message in currentMessages" :key="message.id" class="message-item">
-      <ChatMessageItem
-        :role="message.role"
-        :content="message.content"
-        :createdAt="message.createdAt"
-        :attachments="message.attachments"
-        :id="message.id"
-        :canRetry="chatStore.canRetryMessage(message)"
-        @retry="handleRetryMessage"
+  <template v-else>
+    <ChatDivider v-if="firstMessageDate" :date="firstMessageDate" />
+
+    <div class="messages" ref="messagesContainer">
+      <div ref="loadMoreTriggerRef" class="load-more-trigger"></div>
+
+      <div v-for="message in sortedMessages" :key="message.id" class="message-item">
+        <ChatMessageItem
+          :role="message.role"
+          :content="message.content"
+          :createdAt="message.createdAt"
+          :attachments="message.attachments"
+          :id="message.id"
+          :canRetry="canRetryMessage(message)"
+          @retry="handleRetryMessage"
+        />
+      </div>
+
+      <p v-if="isSending" class="loading-message"><TypingLoader /></p>
+      <p v-if="sendError" class="error-message">⚠ {{ sendError }}</p>
+    </div>
+
+    <div class="input-wrapper">
+      <ChatInput
+        ref="chatInputRef"
+        variant="expanded"
+        @send="handleSend"
+        :key="currentChatId"
+        :chatId="currentChatId"
       />
     </div>
-    <p v-if="isLoading" class="loading-message"><TypingLoader /></p>
-    <p v-if="error" class="error-message">⚠ {{ error }}</p>
-  </div>
-
-  <div class="input-wrapper">
-    <ChatInput
-      ref="chatInputRef"
-      variant="expanded"
-      @send="handleSend"
-      :key="currentChatId"
-      :chatId="currentChatId"
-    />
-  </div>
+  </template>
 </template>
 
 <script setup lang="ts">
+import { computed, ref, useTemplateRef, watch, nextTick } from 'vue'
+import { useRoute } from 'vue-router'
+import { useChatStore } from '@/features/chat/model/chatStore'
+import { useChatMessagesQuery } from '@/features/chat/api/useChatMessagesQuery'
+import { useInfiniteScroll } from '@/shared/composables'
+import { useQueryClient } from '@tanstack/vue-query'
+import type { Attachment } from '@/entities/attachment/types'
+import type { Message } from '@/features/chat/model/types'
 import ChatInput from './ChatInput.vue'
-import { computed, ref, useTemplateRef, watch } from 'vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { TypingLoader } from '@/shared/ui'
-import { useChatStore } from '@/features/chat/model/chatStore'
-import { useRoute, useRouter } from 'vue-router'
-import { RouteNames } from '@/app/router'
-import type { Attachment } from '@/entities/attachment/types'
 
 const route = useRoute()
-const router = useRouter()
 const chatStore = useChatStore()
+const queryClient = useQueryClient()
+
+const currentChatId = computed(() => route.params.chatId as string)
+
+const {
+  data,
+  fetchNextPage,
+  isFetchingNextPage,
+  isLoading: isMessagesLoading,
+  error: messagesError,
+} = useChatMessagesQuery(currentChatId)
+
+const sortedMessages = computed(() => {
+  const all = data.value?.pages.flatMap(p => p.newMessages) ?? []
+  return [...all].sort((a: Message, b: Message) => a.createdAt - b.createdAt)
+})
+
+const firstMessageDate = computed(() => sortedMessages.value[0]?.createdAt)
+
+const isSending = computed(() => chatStore.loadingByChatId[currentChatId.value])
+const sendError = computed(() => chatStore.errorByChatId[currentChatId.value])
+
 const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
-const firstMessageDate = computed(() => currentMessages.value[0]?.createdAt)
+const loadMoreTriggerRef = ref<HTMLElement | null>(null)
 
-const chatInputRef = ref()
-
-const isLoading = computed(() => {
-  return chatStore.loadingByChatId[currentChatId.value]
+const { reset: resetScrollObserver } = useInfiniteScroll({
+  targetRef: loadMoreTriggerRef,
+  rootRef: messagesContainer,
+  onIntersect: () => {
+    if (!isFetchingNextPage.value) {
+      void fetchNextPage()
+    }
+  },
 })
 
-const error = computed(() => {
-  return chatStore.errorByChatId[currentChatId.value]
-})
-
-const currentChatId = computed(() => {
-  return route.params.chatId as string
-})
-
-const currentMessages = computed(() => {
-  return chatStore.messagesByChatId[currentChatId.value] || []
-})
+watch(
+  () => sortedMessages.value.length,
+  () => {
+    nextTick(() => resetScrollObserver())
+  },
+  { flush: 'post' }
+)
 
 const scrollToNewMessage = () => {
-  if (messagesContainer.value) {
-    messagesContainer.value.scrollTop = messagesContainer.value.scrollHeight
+  const container = messagesContainer.value
+  if (container) {
+    container.scrollTop = container.scrollHeight
   }
 }
 
-watch(() => currentMessages.value.length, scrollToNewMessage, { flush: 'post' })
+const chatInputRef = ref()
 
 const handleSend = async (text: string, attachments: Attachment[]) => {
-  let chatId = currentChatId.value
-
-  if (!chatId) {
-    chatId = chatStore.createChat()
-    await router.push({ name: RouteNames.ChatPage, params: { chatId } })
-  }
+  const chatId = currentChatId.value
 
   await chatStore.sendMessage(chatId, text, attachments)
 
   if (!chatStore.errorByChatId[chatId]) {
     chatInputRef.value?.clearAttachments()
+    await queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages'] })
+    nextTick(() => scrollToNewMessage())
   }
 }
 
-const handleRetryMessage = (messageId: string) => {
-  const message = currentMessages.value.find(m => m.id === messageId)
+const canRetryMessage = (message: Message): boolean => {
+  if (message.role !== 'assistant') return false
+  const messages = sortedMessages.value
+  const index = messages.findIndex(m => m.id === message.id)
+  if (index <= 0) return false
+  const userMessage = messages[index - 1]
+  if (userMessage?.attachments?.length) return false
+  return !!userMessage?.requestId
+}
+
+const retryMessage = async (message: Message) => {
+  const messages = sortedMessages.value
+  const index = messages.findIndex(m => m.id === message.id)
+  if (index <= 0) return
+  const userMessage = messages[index - 1]
+
+  chatStore.sendMessage(message.chatId, userMessage!.content, userMessage?.attachments, {
+    isRetry: true,
+    requestId: userMessage?.requestId,
+  })
+
+  await queryClient.invalidateQueries({
+    queryKey: ['chat', message.chatId, 'messages'],
+  })
+
+  nextTick(() => scrollToNewMessage())
+}
+
+const handleRetryMessage = async (messageId: string) => {
+  const message = sortedMessages.value.find(m => m.id === messageId)
   if (!message) return
-  chatStore.retryMessage(message)
+  await retryMessage(message)
 }
 </script>
 

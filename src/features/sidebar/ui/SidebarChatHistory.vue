@@ -1,13 +1,8 @@
 <template>
-  <section v-if="!isCollapsed" class="chat-history">
+  <section v-if="!isCollapsed" class="chat-history" ref="chatListRef">
     <h2 class="d-1 medium history-title">CHAT HISTORY</h2>
     <ul class="chat-list">
-      <li
-        v-for="chat in chatStore.sortedChats"
-        :key="chat.id"
-        class="chat-item"
-        @click="closeSidebarOnMobile"
-      >
+      <li v-for="chat in chats" :key="chat.id" class="chat-item" @click="closeSidebarOnMobile">
         <router-link
           :to="{ name: RouteNames.ChatPage, params: { chatId: chat.id } }"
           :class="['chat-link', route.params.chatId === chat.id ? 'selected-chat' : '']"
@@ -15,21 +10,51 @@
           <span class="d-2 regular chat-title">{{ chat.title }}</span>
         </router-link>
       </li>
+
+      <li v-if="isFetchingNextPage" class="chat-item loading-indicator">
+        <span class="d-2 regular">Loading...</span>
+      </li>
+
+      <li ref="loadMoreTriggerRef" class="load-more-trigger"></li>
     </ul>
   </section>
 </template>
 
 <script setup lang="ts">
+import { ref, watch, nextTick, computed } from 'vue'
 import { useSidebarState } from '@/features/sidebar'
-import { useChatStore } from '@/features/chat/model/chatStore'
 import { useRoute } from 'vue-router'
-import { useAppBreakpoints } from '@/shared/composables'
+import { useAppBreakpoints, useInfiniteScroll } from '@/shared/composables'
 import { RouteNames } from '@/app/router'
+import { useChatsQuery } from '@/features/chat/api/useChatsQuery'
 
 const { isCollapsed, close } = useSidebarState()
 const { isMobile } = useAppBreakpoints()
-const chatStore = useChatStore()
 const route = useRoute()
+
+const { data, fetchNextPage, isFetchingNextPage } = useChatsQuery()
+
+const chats = computed(() => data.value?.pages.flatMap(p => p.transformedChats) ?? [])
+
+const chatListRef = ref<HTMLElement | null>(null)
+const loadMoreTriggerRef = ref<HTMLElement | null>(null)
+
+const { reset } = useInfiniteScroll({
+  targetRef: loadMoreTriggerRef,
+  rootRef: chatListRef,
+  onIntersect: () => void fetchNextPage(),
+})
+
+watch(
+  () => chats.value.length,
+  (newLength, oldLength) => {
+    nextTick(() => reset())
+
+    if (newLength > oldLength && chatListRef.value) {
+      chatListRef.value.scrollTop = 0
+    }
+  }
+)
 
 const closeSidebarOnMobile = () => {
   if (isMobile.value) {
@@ -90,5 +115,16 @@ const closeSidebarOnMobile = () => {
 
 .selected-chat {
   background: var(--neutral-400);
+}
+
+.load-more-trigger {
+  height: 1px;
+  visibility: hidden;
+}
+
+.loading-indicator {
+  text-align: center;
+  padding: 12px;
+  opacity: 0.7;
 }
 </style>
