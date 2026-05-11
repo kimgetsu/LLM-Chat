@@ -10,5 +10,11 @@ export function useChatMessagesQuery(chatId: Ref<string | null>) {
     getNextPageParam: lastPage => lastPage.nextCursor,
     enabled: computed(() => !!chatId.value),
     initialPageParam: null,
+    refetchInterval: query => {
+      const hasPending = query.state.data?.pages.some(page =>
+        page.newMessages.some(m => m.role === 'assistant' && m.status === 'pending')
+      )
+      return hasPending ? 1000 : false
+    },
   })
 }

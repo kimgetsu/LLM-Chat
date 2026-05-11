@@ -62,3 +62,26 @@ export function mergeMessages(
 
   return uniqueMessages
 }
+
+export async function attachmentToServerFormat(attachment: Attachment) {
+  let data
+  if (attachment.source?.type === 'dataUrl') {
+    data = attachment.source.value.split(',')[1]
+  } else {
+    data = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = (reader.result as string).split(',')[1]
+        resolve(result)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(attachment.file!)
+    })
+  }
+
+  return {
+    type: attachment.kind === 'image' ? 'image' : 'file',
+    mimeType: attachment.mimeType,
+    data,
+  }
+}

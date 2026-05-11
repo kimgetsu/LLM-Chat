@@ -28,6 +28,7 @@
       <ChatInput
         ref="chatInputRef"
         variant="expanded"
+        :isLoading="isSending"
         @send="handleSend"
         :key="currentChatId"
         :chatId="currentChatId"
@@ -39,21 +40,18 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef, watch, nextTick } from 'vue'
 import { useRoute } from 'vue-router'
-import { useChatStore } from '@/features/chat/model/chatStore'
 import { useChatMessagesQuery } from '@/features/chat/api/useChatMessagesQuery'
 import { useInfiniteScroll } from '@/shared/composables'
-import { useQueryClient } from '@tanstack/vue-query'
 import type { Attachment } from '@/entities/attachment/types'
 import type { Message } from '@/features/chat/model/types'
 import ChatInput from './ChatInput.vue'
 import ChatMessageItem from './ChatMessageItem.vue'
 import ChatDivider from './ChatDivider.vue'
 import { TypingLoader } from '@/shared/ui'
+import { useSendMessageMutation } from '@/features/chat/api/useSendMessageMutation'
 
 const route = useRoute()
-const chatStore = useChatStore()
-const queryClient = useQueryClient()
-
+const sendMutation = useSendMessageMutation()
 const currentChatId = computed(() => route.params.chatId as string)
 
 const {
@@ -66,13 +64,15 @@ const {
 
 const sortedMessages = computed(() => {
   const all = data.value?.pages.flatMap(p => p.newMessages) ?? []
-  return [...all].sort((a: Message, b: Message) => a.createdAt - b.createdAt)
+  return [...all]
+    .filter(m => !(m.role === 'assistant' && m.status === 'pending'))
+    .sort((a: Message, b: Message) => a.createdAt - b.createdAt)
 })
 
 const firstMessageDate = computed(() => sortedMessages.value[0]?.createdAt)
 
-const isSending = computed(() => chatStore.loadingByChatId[currentChatId.value])
-const sendError = computed(() => chatStore.errorByChatId[currentChatId.value])
+const isSending = computed(() => sendMutation.isPending.value)
+const sendError = computed(() => sendMutation.error.value?.message)
 
 const messagesContainer = useTemplateRef<HTMLDivElement>('messagesContainer')
 const loadMoreTriggerRef = ref<HTMLElement | null>(null)
@@ -107,11 +107,10 @@ const chatInputRef = ref()
 const handleSend = async (text: string, attachments: Attachment[]) => {
   const chatId = currentChatId.value
 
-  await chatStore.sendMessage(chatId, text, attachments)
+  await sendMutation.mutateAsync({ chatId, text, attachments })
 
-  if (!chatStore.errorByChatId[chatId]) {
+  if (!sendMutation.error.value) {
     chatInputRef.value?.clearAttachments()
-    await queryClient.invalidateQueries({ queryKey: ['chat', chatId, 'messages'] })
     nextTick(() => scrollToNewMessage())
   }
 }
@@ -123,7 +122,7 @@ const canRetryMessage = (message: Message): boolean => {
   if (index <= 0) return false
   const userMessage = messages[index - 1]
   if (userMessage?.attachments?.length) return false
-  return !!userMessage?.requestId
+  return true
 }
 
 const retryMessage = async (message: Message) => {
@@ -132,13 +131,12 @@ const retryMessage = async (message: Message) => {
   if (index <= 0) return
   const userMessage = messages[index - 1]
 
-  chatStore.sendMessage(message.chatId, userMessage!.content, userMessage?.attachments, {
+  await sendMutation.mutateAsync({
+    chatId: message.chatId,
+    text: userMessage!.content,
+    attachments: userMessage?.attachments,
     isRetry: true,
     requestId: userMessage?.requestId,
-  })
-
-  await queryClient.invalidateQueries({
-    queryKey: ['chat', message.chatId, 'messages'],
   })
 
   nextTick(() => scrollToNewMessage())
