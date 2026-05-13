@@ -1,10 +1,11 @@
 import { useInfiniteQuery } from '@tanstack/vue-query'
 import { fetchMessagesFromApi } from './chatApi'
 import { type Ref, computed } from 'vue'
+import { chatQueryKeys } from './queryKeys'
 
 export function useChatMessagesQuery(chatId: Ref<string | null>) {
   return useInfiniteQuery({
-    queryKey: ['chat', chatId, 'messages'],
+    queryKey: chatQueryKeys.messages(chatId.value!),
     queryFn: ({ pageParam }: { pageParam: string | null }) =>
       fetchMessagesFromApi(chatId.value!, pageParam),
     getNextPageParam: lastPage => lastPage.nextCursor,

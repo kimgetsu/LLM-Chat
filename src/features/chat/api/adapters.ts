@@ -1,5 +1,5 @@
 import type { Attachment } from '@/entities/attachment/types'
-import type { Chat, Message, ServerChat, ServerMessage, ServerAttachment } from './types'
+import type { Chat, Message, ServerChat, ServerMessage, ServerAttachment } from '../model/types'
 import { v4 as uuidv4 } from 'uuid'
 
 export function transformServerAttachment(serverAttachment: ServerAttachment): Attachment {
@@ -41,26 +41,6 @@ export function transformServerMessage(serverMsg: ServerMessage): Message {
   }
 
   return message
-}
-
-export function mergeMessages(
-  existing: Message[],
-  newMessages: Message[],
-  prepend: boolean
-): Message[] {
-  let combined: Message[]
-
-  if (prepend) {
-    combined = [...newMessages, ...existing]
-  } else {
-    combined = [...existing, ...newMessages]
-  }
-
-  const uniqueMessages = combined.filter(
-    (msg, index, self) => index === self.findIndex(m => m.id === msg.id)
-  )
-
-  return uniqueMessages
 }
 
 export async function attachmentToServerFormat(attachment: Attachment) {

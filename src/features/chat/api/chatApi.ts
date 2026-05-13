@@ -3,7 +3,7 @@ import {
   transformServerChat,
   transformServerMessage,
   attachmentToServerFormat,
-} from '@/features/chat/model/helpers'
+} from '@/features/chat/api/adapters'
 import type { Attachment } from '@/entities/attachment/types'
 import type {
   ChatsResponse,
