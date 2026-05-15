@@ -65,10 +65,7 @@ const {
 const sortedMessages = computed(() => {
   const all = data.value?.pages.flatMap(p => p.newMessages) ?? []
   return [...all]
-    .filter(m => {
-      if (m.id.startsWith('temp-')) return true
-      return !(m.role === 'assistant' && m.status === 'pending')
-    })
+    .filter(m => !(m.role === 'assistant' && m.status === 'pending'))
     .sort((a: Message, b: Message) => a.createdAt - b.createdAt)
 })
 

@@ -3,7 +3,7 @@
     <div
       v-for="attachment in props.attachments"
       :key="attachment.id"
-      :class="['attach-item', { readonly: readonly }]"
+      :class="['attach-item', { readonly }]"
     >
       <span class="item-info">
         <component :is="getAttachmentIcon(attachment.kind)" />

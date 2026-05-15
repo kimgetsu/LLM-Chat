@@ -5,7 +5,7 @@ import { chatQueryKeys } from './queryKeys'
 
 export function useChatMessagesQuery(chatId: Ref<string | null>) {
   return useInfiniteQuery({
-    queryKey: chatQueryKeys.messages(chatId.value!),
+    queryKey: computed(() => chatQueryKeys.messages(chatId.value!)),
     queryFn: ({ pageParam }: { pageParam: string | null }) =>
       fetchMessagesFromApi(chatId.value!, pageParam),
     getNextPageParam: lastPage => lastPage.nextCursor,

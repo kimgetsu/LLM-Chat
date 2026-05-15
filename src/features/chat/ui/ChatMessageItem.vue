@@ -10,7 +10,7 @@
           ></span>
           <span class="time d-1 medium">{{ timeStr }}</span>
         </div>
-        <div :class="[{ 'message-content': role === 'assistant' }]" v-html="renderedContent" />
+        <MarkdownContent :text="content" />
       </div>
     </div>
 
@@ -57,7 +57,7 @@ import { UiButton, ButtonSize, ButtonVariant } from '@/shared/ui'
 import RetryIcon from '@/shared/assets/icons/RetryIcon.svg'
 import CopyIcon from '@/shared/assets/icons/CopyIcon.svg'
 import SuccesIcon from '@/shared/assets/icons/SuccesIcon.svg'
-import { marked } from 'marked'
+import { MarkdownContent } from '@/shared/ui'
 
 const emit = defineEmits<{
   retry: [messageId: string]
@@ -103,23 +103,6 @@ const copyingContent = async (content: string): Promise<void> => {
     console.error('Failed to copy: ', e)
   }
 }
-
-function escapeHtml(text: string): string {
-  return text
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/\n/g, '<br>')
-}
-
-const renderedContent = computed(() => {
-  if (mProps.role !== 'assistant') return escapeHtml(mProps.content)
-
-  return marked.parse(mProps.content, {
-    breaks: true,
-    gfm: true,
-  })
-})
 </script>
 
 <style scoped>
@@ -197,41 +180,5 @@ const renderedContent = computed(() => {
 .disabled-retry {
   opacity: 0.5;
   cursor: not-allowed;
-}
-
-.message-content :deep(h1),
-.message-content :deep(h2),
-.message-content :deep(h3) {
-  margin: 0.5em 0 0.25em;
-}
-
-.message-content :deep(p) {
-  margin: 0.25em 0;
-}
-
-.message-content :deep(pre) {
-  background: #1e1e1e;
-  color: #d4d4d4;
-  padding: 1em;
-  border-radius: 8px;
-  overflow-x: auto;
-}
-
-.message-content :deep(code) {
-  background: rgba(255, 255, 255, 0.1);
-  padding: 2px 6px;
-  border-radius: 4px;
-  font-family: 'Fira Code', monospace;
-}
-
-.message-content :deep(ul),
-.message-content :deep(ol) {
-  padding-left: 1.5em;
-}
-
-.message-content :deep(blockquote) {
-  border-left: 3px solid var(--primary-200);
-  padding-left: 1em;
-  opacity: 0.8;
 }
 </style>
