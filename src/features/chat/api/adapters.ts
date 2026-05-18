@@ -1,5 +1,5 @@
 import type { Attachment } from '@/entities/attachment/types'
-import type { Chat, Message, ServerChat, ServerMessage, ServerAttachment } from './types'
+import type { Chat, Message, ServerChat, ServerMessage, ServerAttachment } from '../model/types'
 import { v4 as uuidv4 } from 'uuid'
 
 export function transformServerAttachment(serverAttachment: ServerAttachment): Attachment {
@@ -43,22 +43,25 @@ export function transformServerMessage(serverMsg: ServerMessage): Message {
   return message
 }
 
-export function mergeMessages(
-  existing: Message[],
-  newMessages: Message[],
-  prepend: boolean
-): Message[] {
-  let combined: Message[]
-
-  if (prepend) {
-    combined = [...newMessages, ...existing]
+export async function attachmentToServerFormat(attachment: Attachment) {
+  let data
+  if (attachment.source?.type === 'dataUrl') {
+    data = attachment.source.value.split(',')[1]
   } else {
-    combined = [...existing, ...newMessages]
+    data = await new Promise((resolve, reject) => {
+      const reader = new FileReader()
+      reader.onload = () => {
+        const result = (reader.result as string).split(',')[1]
+        resolve(result)
+      }
+      reader.onerror = reject
+      reader.readAsDataURL(attachment.file!)
+    })
   }
 
-  const uniqueMessages = combined.filter(
-    (msg, index, self) => index === self.findIndex(m => m.id === msg.id)
-  )
-
-  return uniqueMessages
+  return {
+    type: attachment.kind === 'image' ? 'image' : 'file',
+    mimeType: attachment.mimeType,
+    data,
+  }
 }

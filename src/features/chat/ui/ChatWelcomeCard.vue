@@ -14,15 +14,13 @@
 <script setup lang="ts">
 import ChatInput from './ChatInput.vue'
 import { useRouter } from 'vue-router'
-import { useChatStore } from '@/features/chat/model/chatStore'
 import { useCreateChatMutation } from '@/features/chat/api/useCreateChatMutation'
-import { useQueryClient } from '@tanstack/vue-query'
 import { RouteNames } from '@/app/router'
+import { useSendMessageMutation } from '../api/useSendMessageMutation'
 
 const router = useRouter()
-const chatStore = useChatStore()
-const queryClient = useQueryClient()
 const mutation = useCreateChatMutation()
+const sendMutation = useSendMessageMutation()
 
 const createAndOpenChat = async (initialMessage?: string) => {
   const title = initialMessage?.trim() ? initialMessage : 'New chat'
@@ -31,10 +29,9 @@ const createAndOpenChat = async (initialMessage?: string) => {
   router.push({ name: RouteNames.ChatPage, params: { chatId: newChat.id } })
 
   if (initialMessage?.trim()) {
-    await chatStore.sendMessage(newChat.id, initialMessage)
-
-    await queryClient.invalidateQueries({
-      queryKey: ['chat', newChat.id, 'messages'],
+    await sendMutation.mutateAsync({
+      chatId: newChat.id,
+      text: initialMessage,
     })
   }
 }

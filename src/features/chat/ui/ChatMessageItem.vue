@@ -10,9 +10,7 @@
           ></span>
           <span class="time d-1 medium">{{ timeStr }}</span>
         </div>
-        <div class="content d-1 regular">
-          {{ content }}
-        </div>
+        <MarkdownContent :text="content" />
       </div>
     </div>
 
@@ -59,6 +57,7 @@ import { UiButton, ButtonSize, ButtonVariant } from '@/shared/ui'
 import RetryIcon from '@/shared/assets/icons/RetryIcon.svg'
 import CopyIcon from '@/shared/assets/icons/CopyIcon.svg'
 import SuccesIcon from '@/shared/assets/icons/SuccesIcon.svg'
+import { MarkdownContent } from '@/shared/ui'
 
 const emit = defineEmits<{
   retry: [messageId: string]

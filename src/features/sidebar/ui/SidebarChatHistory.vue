@@ -5,7 +5,7 @@
       <li v-for="chat in chats" :key="chat.id" class="chat-item" @click="closeSidebarOnMobile">
         <router-link
           :to="{ name: RouteNames.ChatPage, params: { chatId: chat.id } }"
-          :class="['chat-link', route.params.chatId === chat.id ? 'selected-chat' : '']"
+          :class="['chat-link', { 'selected-chat': route.params.chatId === chat.id }]"
         >
           <span class="d-2 regular chat-title">{{ chat.title }}</span>
         </router-link>

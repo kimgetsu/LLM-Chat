@@ -68,11 +68,11 @@ import ClipIcon from '@/shared/assets/icons/ClipIcon.svg'
 import LoadingIcon from '@/shared/assets/icons/LoadingIcon.svg'
 import { useChatFiles } from '../model/useChatFiles'
 import type { Attachment } from '@/entities/attachment/types'
-import { useChatStore } from '../model/chatStore'
 
 const props = defineProps<{
   variant: 'compact' | 'expanded'
   chatId?: string
+  isLoading?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -80,14 +80,10 @@ const emit = defineEmits<{
 }>()
 
 const { attachments, addFiles, clearAttachments, removeAttachment } = useChatFiles()
-const store = useChatStore()
 const message = ref('')
 const fileInput = ref<HTMLInputElement | null>(null)
 
-const isLoading = computed(() => {
-  if (!props.chatId) return false
-  return store.loadingByChatId[props.chatId] === true
-})
+const isLoading = computed(() => props.isLoading ?? false)
 const allAttachmentsReady = computed(() => attachments.value.every(a => a.status === 'ready'))
 const hasErrorAttachments = computed(() => attachments.value.some(a => a.status === 'error'))
 const isSendDisabled = computed(() => {

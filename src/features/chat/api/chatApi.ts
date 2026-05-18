@@ -1,10 +1,18 @@
 import { api } from '@/shared/api/http'
-import { transformServerChat, transformServerMessage } from '@/features/chat/model/helpers'
+import {
+  transformServerChat,
+  transformServerMessage,
+  attachmentToServerFormat,
+} from '@/features/chat/api/adapters'
+import type { Attachment } from '@/entities/attachment/types'
 import type {
   ChatsResponse,
   CreateChatResponse,
   MessageResponse,
+  Message,
 } from '@/features/chat/model/types'
+
+const DEFAULT_MODEL = import.meta.env.VITE_OPENROUTER_MODEL
 
 export async function fetchChatsFromApi(cursor?: string | null) {
   try {
@@ -40,5 +48,37 @@ export async function fetchMessagesFromApi(chatId: string, cursor?: string | nul
     return { newMessages, nextCursor: currentChatInfo.nextCursor }
   } catch (err) {
     throw err
+  }
+}
+
+export async function sendMessageToApi(
+  chatId: string,
+  content: string,
+  options?: {
+    model?: string
+    temperature?: number
+    maxTokens?: number
+    clientMessageId?: string
+    attachments?: Attachment[]
+    isRetry?: boolean
+    requestId?: string
+  }
+): Promise<{ userMessage: Message; assistantMessage: Message }> {
+  const serverAttachments = options?.attachments?.length
+    ? await Promise.all(options.attachments.map(attachmentToServerFormat))
+    : undefined
+
+  const response = await api.post(`/chats/${chatId}/sendMessage`, {
+    content,
+    model: options?.model || DEFAULT_MODEL,
+    temperature: options?.temperature,
+    maxTokens: options?.maxTokens,
+    clientMessageId: options?.clientMessageId,
+    attachments: serverAttachments,
+  })
+
+  return {
+    userMessage: transformServerMessage(response.data.data.userMessage),
+    assistantMessage: transformServerMessage(response.data.data.assistantMessage),
   }
 }
