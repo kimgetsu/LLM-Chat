@@ -8,7 +8,13 @@
     "build": "vue-tsc -b && vite build",
     "preview": "vite preview",
     "format": "prettier --write .",
-    "format:check": "prettier --check ."
+    "format:check": "prettier --check .",
+    "storybook": "storybook dev -p 6006",
+    "storybook:build": "storybook build",
+    "test:unit": "vitest run",
+    "test:unit:watch": "vitest",
+    "test:visual": "npm run build-storybook && npx chromatic --project-token=chpt_c76e7ea28378ec2",
+    "test:visual:commit": "npx chromatic --project-token=chpt_c76e7ea28378ec2 --exit-zero-on-changes"
   },
   "dependencies": {
     "@tanstack/vue-query": "^5.100.5",
@@ -22,14 +28,26 @@
     "vue-router": "^4.6.4"
   },
   "devDependencies": {
+    "@chromatic-com/storybook": "^5.2.1",
+    "@storybook/addon-a11y": "^10.4.0",
+    "@storybook/addon-docs": "^10.4.0",
+    "@storybook/addon-vitest": "^10.4.0",
+    "@storybook/vue3-vite": "^10.4.0",
     "@types/node": "^24.10.1",
     "@types/uuid": "^10.0.0",
     "@vitejs/plugin-vue": "^6.0.1",
+    "@vitest/browser-playwright": "^4.1.6",
+    "@vitest/coverage-v8": "^4.1.6",
     "@vue/tsconfig": "^0.8.1",
+    "chromatic": "^17.0.0",
+    "happy-dom": "^20.9.0",
+    "playwright": "^1.60.0",
     "prettier": "^3.8.1",
+    "storybook": "^10.4.0",
     "typescript": "~5.9.3",
     "vite": "^7.2.4",
     "vite-svg-loader": "^5.1.0",
+    "vitest": "^4.1.6",
     "vue-tsc": "^3.1.4"
   }
 }
