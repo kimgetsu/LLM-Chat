@@ -1,43 +1,45 @@
-import { describe, it, expect } from "vitest"
-import { ref } from "vue"
-import { useInfiniteScroll } from "@/shared/composables"
+import { describe, it, expect } from 'vitest'
+import { ref } from 'vue'
+import { useInfiniteScroll } from '@/shared/composables'
 
 describe('useInfiniteScroll', () => {
-    it ('Возвращает reset', () => {
-        const targetRef = ref(document.createElement('div'))
-        const rootRef = ref(document.createElement('div'))
+  it('Возвращает reset', () => {
+    const targetRef = ref(document.createElement('div'))
+    const rootRef = ref(document.createElement('div'))
 
-        const result = useInfiniteScroll({
-            targetRef,
-            rootRef,
-            onIntersect: vi.fn()
-        })
-
-        expect(result).toHaveProperty('reset')
-        expect(typeof result.reset).toBe('function')
+    const result = useInfiniteScroll({
+      targetRef,
+      rootRef,
+      onIntersect: vi.fn(),
     })
 
-    it ('Не падает при вызове reset', () => {
-        const targetRef = ref(document.createElement('div'))
-        const rootRef = ref(document.createElement('div'))
+    expect(result).toHaveProperty('reset')
+    expect(typeof result.reset).toBe('function')
+  })
 
-        const { reset } = useInfiniteScroll({
-            targetRef,
-            rootRef,
-            onIntersect: vi.fn()
-        })
+  it('Не падает при вызове reset', () => {
+    const targetRef = ref(document.createElement('div'))
+    const rootRef = ref(document.createElement('div'))
 
-        expect(() => reset()).not.toThrow()
+    const { reset } = useInfiniteScroll({
+      targetRef,
+      rootRef,
+      onIntersect: vi.fn(),
     })
 
-    it ('Не падает если targetRef пустой', () => {
-        const targetRef = ref<HTMLElement | null>(null)
-        const rootRef = ref(document.createElement('div'))
+    expect(() => reset()).not.toThrow()
+  })
 
-        expect(() => useInfiniteScroll({
-            targetRef,
-            rootRef,
-            onIntersect: vi.fn()
-        })).not.toThrow()
-    })
+  it('Не падает если targetRef пустой', () => {
+    const targetRef = ref<HTMLElement | null>(null)
+    const rootRef = ref(document.createElement('div'))
+
+    expect(() =>
+      useInfiniteScroll({
+        targetRef,
+        rootRef,
+        onIntersect: vi.fn(),
+      })
+    ).not.toThrow()
+  })
 })

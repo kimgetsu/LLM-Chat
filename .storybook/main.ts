@@ -6,16 +6,10 @@ const __filename = fileURLToPath(import.meta.url)
 const __dirname = path.dirname(__filename)
 
 const config: StorybookConfig = {
-  stories: [
-    '../tests/**/*.mdx',
-    '../tests/**/*.stories.@(js|jsx|mjs|ts|tsx)',
-  ],
-  addons: [
-    '@chromatic-com/storybook',
-    '@storybook/addon-vitest',
-  ],
+  stories: ['../tests/**/*.mdx', '../tests/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
+  addons: ['@chromatic-com/storybook', '@storybook/addon-vitest'],
   framework: '@storybook/vue3-vite',
-  viteFinal: (baseConfig) => {
+  viteFinal: baseConfig => {
     baseConfig.resolve = baseConfig.resolve || {}
     baseConfig.resolve.alias = {
       ...baseConfig.resolve.alias,
