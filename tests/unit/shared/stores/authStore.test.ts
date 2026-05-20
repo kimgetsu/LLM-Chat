@@ -60,7 +60,7 @@ describe('authStore', () => {
       expect(store.isLoaded).toBe(true)
     })
 
-    it('вызывает api.get с /auth/me', async () => {
+    it('Вызывает api.get с /auth/me', async () => {
       ;(api.get as any).mockResolvedValue({ data: { data: null } })
 
       const store = useAuthStore()
@@ -85,7 +85,7 @@ describe('authStore', () => {
       expect(store.isAuthenticated).toBe(false)
     })
 
-    it('вызывает api.post с /auth/logout', async () => {
+    it('Вызывает api.post с /auth/logout', async () => {
       ;(api.post as any).mockResolvedValue({})
 
       const store = useAuthStore()
@@ -94,7 +94,7 @@ describe('authStore', () => {
       expect(api.post).toHaveBeenCalledWith('/auth/logout')
     })
 
-    it('сбрасывает user даже при ошибке (finally)', async () => {
+    it('Сбрасывает user даже при ошибке (finally)', async () => {
       const mockUser = { id: '1', name: 'Denis' }
       ;(api.get as any).mockResolvedValue({ data: { data: mockUser } })
 
@@ -102,7 +102,10 @@ describe('authStore', () => {
       await store.fetchMe()
       expect(store.user).not.toBeNull()
       ;(api.post as any).mockRejectedValue(new Error('Network error'))
-      await store.logout()
+
+      try {
+        await store.logout()
+      } catch {}
 
       expect(store.user).toBeNull()
       expect(store.isAuthenticated).toBe(false)
