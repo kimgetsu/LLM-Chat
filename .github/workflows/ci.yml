@@ -48,7 +48,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: 22
           cache: 'npm'
 
       - name: Install dependencies
@@ -56,10 +56,11 @@ jobs:
           rm -rf node_modules package-lock.json
           npm install
 
+      - name: Build Storybook
+        run: npm run storybook:build
+
       - name: Publish to Chromatic
-        run: npm run test:visual:commit
-        env:
-          CHROMATIC_PROJECT_TOKEN: ${{ secrets.CHROMATIC_PROJECT_TOKEN }}
+        run: npx chromatic --project-token=${{ secrets.CHROMATIC_PROJECT_TOKEN }} --exit-zero-on-changes --storybook-build-dir=storybook-static
 
   deploy:
     runs-on: ubuntu-latest
