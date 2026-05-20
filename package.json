@@ -13,8 +13,9 @@
     "storybook:build": "storybook build",
     "test:unit": "vitest run",
     "test:unit:watch": "vitest",
-    "test:visual": "npm run build-storybook && npx chromatic --project-token=chpt_c76e7ea28378ec2",
-    "test:visual:commit": "npx chromatic --project-token=chpt_c76e7ea28378ec2 --exit-zero-on-changes"
+    "test:visual": "npm run storybook:build && npx chromatic --storybook-build-dir=storybook-static",
+    "test:visual:commit": "npx chromatic --exit-zero-on-changes",
+    "chromatic": "npx chromatic --project-token=chpt_c76e7ea28378ec2 --storybook-build-dir=storybook-static"
   },
   "dependencies": {
     "@tanstack/vue-query": "^5.100.5",

@@ -7,7 +7,7 @@ const __dirname = path.dirname(__filename)
 
 const config: StorybookConfig = {
   stories: ['../tests/**/*.mdx', '../tests/**/*.stories.@(js|jsx|mjs|ts|tsx)'],
-  addons: ['@chromatic-com/storybook', '@storybook/addon-vitest'],
+  addons: ['@chromatic-com/storybook'],
   framework: '@storybook/vue3-vite',
   viteFinal: baseConfig => {
     baseConfig.resolve = baseConfig.resolve || {}

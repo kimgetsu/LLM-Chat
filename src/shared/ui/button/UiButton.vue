@@ -134,4 +134,15 @@ withDefaults(defineProps<ButtonProps>(), {
 .variant-tertiary:active {
   background: var(--neutral-500);
 }
+
+.btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  filter: none;
+}
+
+.btn:disabled:hover {
+  filter: none;
+  background: inherit;
+}
 </style>
